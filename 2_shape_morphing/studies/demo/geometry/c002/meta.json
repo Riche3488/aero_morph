@@ -1,0 +1,82 @@
+{
+  "case": "c002",
+  "study": "demo",
+  "label": "roof_rear_drop=-20mm",
+  "params": {
+    "ride_height": 0.0,
+    "hood_height": 0.0,
+    "front_corner": 0.0,
+    "windshield_rake": 0.0,
+    "roof_rear_drop": -20.0,
+    "spoiler_length": 0.0,
+    "tail_taper": 0.0,
+    "diffuser_angle": 0.0,
+    "mirror_scale": 1.0,
+    "mode:front_bumper_push": 0.0,
+    "mode:rear_roof_drop": 0.0
+  },
+  "units": "m",
+  "frontal_area": 2.659648,
+  "parts": {
+    "body": {
+      "triangles": 121632,
+      "volume_m3": 9.046749
+    },
+    "wheel_FL": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "wheel_FR": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "wheel_RL": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "wheel_RR": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "mirror_L": {
+      "triangles": 2208,
+      "volume_m3": 0.002572
+    },
+    "mirror_R": {
+      "triangles": 2208,
+      "volume_m3": 0.002572
+    }
+  },
+  "bbox": [
+    [
+      0.0,
+      -0.945,
+      0.16
+    ],
+    [
+      4.635,
+      0.945,
+      1.609
+    ]
+  ],
+  "drag_modes": {},
+  "qa": {},
+  "signature": {
+    "params": {
+      "ride_height": 0.0,
+      "hood_height": 0.0,
+      "front_corner": 0.0,
+      "windshield_rake": 0.0,
+      "roof_rear_drop": -20.0,
+      "spoiler_length": 0.0,
+      "tail_taper": 0.0,
+      "diffuser_angle": 0.0,
+      "mirror_scale": 1.0,
+      "mode:front_bumper_push": 0.0,
+      "mode:rear_roof_drop": 0.0
+    },
+    "res": 0.5,
+    "modes_hash": "da39a3ee5e6b"
+  },
+  "status": "ok"
+}

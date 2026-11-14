@@ -1,0 +1,23 @@
+{
+  "state": "running",
+  "error": null,
+  "prepare": {
+    "frontal_area": 2.659648,
+    "parts": [
+      "body",
+      "wheelFront",
+      "wheelRear",
+      "mirror"
+    ],
+    "seconds": 2.8
+  },
+  "mesh": {
+    "cells": 1583718,
+    "failed_checks": 1,
+    "layer_coverage_pct": {
+      "body": 95.9,
+      "mirror": 91.3
+    },
+    "seconds": 107.0
+  }
+}

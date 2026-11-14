@@ -1,0 +1,10 @@
+#!/bin/sh
+cd "${0%/*}" || exit 1
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+python3 make_geometry.py
+runApplication blockMesh
+runApplication surfaceFeatures
+runApplication decomposePar -copyZero
+runParallel snappyHexMesh -overwrite
+runParallel checkMesh
+runParallel potentialFoam

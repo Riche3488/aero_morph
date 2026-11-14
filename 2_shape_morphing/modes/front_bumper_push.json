@@ -1,0 +1,29 @@
+{
+  "description": "push the front bumper corners inward along the surface normal (units: m)",
+  "units": "m",
+  "symmetry": "y",
+  "handles": [
+    {
+      "name": "bumper_corner",
+      "center": [
+        0.12,
+        0.87,
+        0.55
+      ],
+      "normal_disp": -0.04,
+      "radius": 0.35
+    }
+  ],
+  "anchors": [
+    {
+      "name": "front_wheel_arch",
+      "center": [
+        0.6,
+        0.93,
+        0.55
+      ],
+      "radius": 0.25
+    }
+  ],
+  "source_geometry": "ioniq5_parametric"
+}

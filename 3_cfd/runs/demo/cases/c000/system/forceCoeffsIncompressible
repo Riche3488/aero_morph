@@ -1,0 +1,18 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      forceCoeffsIncompressible;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeEtc "caseDicts/functions/forces/forceCoeffsIncompressible.cfg"
+#include    "$FOAM_CASE/0/U"
+patches     ("(body|mirror|wheel.*)");
+magUInf     $Uinlet;
+lRef        3.0;              // wheelbase
+Aref        1.32571;           // HALF of this design's frontal area (half model)
+CofR        (2.345 0 0);      // mid-wheelbase on ground
+liftDir     (0 0 1);
+dragDir     (1 0 0);
+pitchAxis   (0 1 0);

@@ -1,0 +1,19 @@
+{
+  "case": "c001",
+  "label": "tail_taper=80mm",
+  "params": {
+    "ride_height": 0.0,
+    "hood_height": 0.0,
+    "front_corner": 0.0,
+    "windshield_rake": 0.0,
+    "roof_rear_drop": 0.0,
+    "spoiler_length": 0.0,
+    "tail_taper": 80.0,
+    "diffuser_angle": 0.0,
+    "mirror_scale": 1.0
+  },
+  "frontal_area": 2.651264,
+  "n_iter": 800,
+  "n_avg": 300,
+  "init": "map"
+}

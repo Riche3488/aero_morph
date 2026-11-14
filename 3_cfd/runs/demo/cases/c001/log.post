@@ -1,0 +1,15 @@
+iterations                               800
+Cd (mean last 300)                       0.2999
+Cd std                                   0.0058
+Cl                                       -0.1892
+Cl front                                 -0.0406
+Cl rear                                  -0.1486
+CdA [m2]                                 0.7950
+Drag force full car [N]                  369.2819
+Lift force full car [N]                  -233.0064
+Aero drag power @100km/h [kW]            10.2578
+y+ body (min/max/avg)                    4.0 / 982.8 / 196.8
+y+ wheelFront (min/max/avg)              15.2 / 1574.4 / 393.4
+y+ wheelRear (min/max/avg)               7.4 / 1498.4 / 405.0
+y+ mirror (min/max/avg)                  5.2 / 414.6 / 161.7
+figures written to results

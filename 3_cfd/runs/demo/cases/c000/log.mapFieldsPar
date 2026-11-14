@@ -1,0 +1,216 @@
+KWLeeWS.96704RTC timebase, using 213 picos/cycle from /proc instead of the detected 101464 picos/cycle
+
+KWLeeWS.96710RTC timebase, using 213 picos/cycle from /proc instead of the detected 89468 picos/cycle
+
+KWLeeWS.96703RTC timebase, using 213 picos/cycle from /proc instead of the detected 88371 picos/cycle
+
+KWLeeWS.96705RTC timebase, using 213 picos/cycle from /proc instead of the detected 88952 picos/cycle
+
+KWLeeWS.96708RTC timebase, using 213 picos/cycle from /proc instead of the detected 89541 picos/cycle
+
+KWLeeWS.96709RTC timebase, using 213 picos/cycle from /proc instead of the detected 95580 picos/cycle
+
+KWLeeWS.96706RTC timebase, using 213 picos/cycle from /proc instead of the detected 81271 picos/cycle
+
+KWLeeWS.96707RTC timebase, using 213 picos/cycle from /proc instead of the detected 80481 picos/cycle
+
+KWLeeWS.96704RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.96707RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.96708RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.96705RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.96709RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.96703RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.96706RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.96710RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 12-86e126a7bc4d
+Exec   : mapFieldsPar /home/riche3488/aero_project/ioniq5_cfd -sourceTime latestTime -consistent -parallel
+Date   : Nov 14 2026
+Time   : 15:36:58
+Host   : "KWLeeWS"
+PID    : 96703
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/studies/demo/cases/c000
+nProcs : 8
+Slaves : 
+7
+(
+"KWLeeWS.96704"
+"KWLeeWS.96705"
+"KWLeeWS.96706"
+"KWLeeWS.96707"
+"KWLeeWS.96708"
+"KWLeeWS.96709"
+"KWLeeWS.96710"
+)
+
+Pstream initialised with:
+    floatTransfer      : false
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Source: "/home/riche3488/aero_project" "ioniq5_cfd"
+Target: "/home/riche3488/aero_project/studies/demo/cases" "c000"
+Mapping method: intersection
+
+Create databases as time
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/ioniq5_cfd
+nProcs : 8
+Slaves : 
+7
+(
+"KWLeeWS.96704"
+"KWLeeWS.96705"
+"KWLeeWS.96706"
+"KWLeeWS.96707"
+"KWLeeWS.96708"
+"KWLeeWS.96709"
+"KWLeeWS.96710"
+)
+
+Pstream initialised with:
+    floatTransfer      : false
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/ioniq5_cfd/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/studies/demo/cases/c000/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+
+Source time: 1500s
+Target time: 0s
+
+Create meshes
+
+Source mesh size: 1582165, Target mesh size: 1582165
+
+Consistently creating and mapping fields for time 1500
+
+Creating cellsToCells between source mesh region0 and target mesh region0 using intersection
+    cellsToCells: Calculating couplings between 1582165 source cells and 1582165 target cells
+        Overlapping volume = 1915.2979
+        3270874 couplings calculated in 60.721248s
+Creating patchToPatch between source patch inlet and target patch inlet using intersection
+    patchToPatch: Calculating couplings between 612 source faces and 612 target faces
+        Source min/average/max coverage = 1/1/1
+        Target min/average/max coverage = 1/1/1
+        Source average openness/error/depth/angle = 7.2563583e-19/5.4422718e-19/2.1483166e-34/0
+        Source max openness/error/depth/angle = 2.2204458e-16/1.1102229e-16/1.3147677e-31/0
+        1224 couplings calculated in 0.095777s
+Creating patchToPatch between source patch outlet and target patch outlet using intersection
+    patchToPatch: Calculating couplings between 1365 source faces and 1365 target faces
+        Source min/average/max coverage = 1/1/1
+        Target min/average/max coverage = 1/1/1
+        Source average openness/error/depth/angle = 2.4400506e-19/4.066751e-19/1.7337602e-33/0
+        Source max openness/error/depth/angle = 1.110223e-16/1.110223e-16/1.0518145e-30/0
+        2730 couplings calculated in 0.170376s
+Creating patchToPatch between source patch freestream and target patch freestream using intersection
+    patchToPatch: Calculating couplings between 2240 source faces and 2240 target faces
+        Source min/average/max coverage = 1/1/1
+        Target min/average/max coverage = 1/1/1
+        Source average openness/error/depth/angle = 2.1262747e-17/5.1010414e-16/1.5346927e-16/1.6974255e-08
+        Source max openness/error/depth/angle = 4.4408921e-16/1.1488474e-14/3.6889652e-15/1.7075473e-06
+        4490 couplings calculated in 0.172005s
+Creating patchToPatch between source patch symmetry and target patch symmetry using intersection
+    patchToPatch: Calculating couplings between 33353 source faces and 33353 target faces
+        Source min/average/max coverage = 1/1/1
+        Target min/average/max coverage = 1/1/1
+        Source average openness/error/depth/angle = 4.7021471e-18/6.5439022e-18/0/0
+        Source max openness/error/depth/angle = 2.7713411e-16/2.2857001e-16/0/0
+        66706 couplings calculated in 0.828458s
+Creating patchToPatch between source patch ground and target patch ground using intersection
+    patchToPatch: Calculating couplings between 35132 source faces and 35132 target faces
+        Source min/average/max coverage = 1/1/1
+        Target min/average/max coverage = 1/1/1
+        Source average openness/error/depth/angle = 1.9592676e-18/3.1721036e-18/0/0
+        Source max openness/error/depth/angle = 2.220446e-16/4.3875608e-16/0/0
+        70264 couplings calculated in 0.978747s
+Creating patchToPatch between source patch body and target patch body using intersection
+    patchToPatch: Calculating couplings between 57380 source faces and 57380 target faces
+        Source min/average/max coverage = 0.14558563/0.99989894/1.2734904
+        Target min/average/max coverage = 0.14558563/0.99983917/1.3649785
+        Source average openness/error/depth/angle = 6.3310067e-17/8.5306258e-05/1.6175191e-05/0.0078462466
+        Source max openness/error/depth/angle = 5.5623347e-16/0.84453808/0.14132955/83.701471
+        118858 couplings calculated in 2.684311s
+Creating patchToPatch between source patch mirror and target patch mirror using intersection
+    patchToPatch: Calculating couplings between 934 source faces and 934 target faces
+        Source min/average/max coverage = 1/1/1
+        Target min/average/max coverage = 1/1/1
+        Source average openness/error/depth/angle = 1.1402032e-16/1.811946e-14/6.3711065e-15/2.2738939e-07
+        Source max openness/error/depth/angle = 4.6029332e-16/7.5090098e-14/2.9881989e-14/1.4787793e-06
+        2092 couplings calculated in 0.228643s
+Creating patchToPatch between source patch wheelFront and target patch wheelFront using intersection
+    patchToPatch: Calculating couplings between 4942 source faces and 4942 target faces
+        Source min/average/max coverage = 1/1/1
+        Target min/average/max coverage = 1/1/1
+        Source average openness/error/depth/angle = 6.6837338e-17/3.3419388e-15/1.355358e-15/1.6686684e-07
+        Source max openness/error/depth/angle = 6.5178752e-16/2.6763198e-14/1.7382793e-14/1.4787793e-06
+        10278 couplings calculated in 0.822286s
+Creating patchToPatch between source patch wheelRear and target patch wheelRear using intersection
+    patchToPatch: Calculating couplings between 4542 source faces and 4542 target faces
+        Source min/average/max coverage = 1/1.0000269/1.0765557
+        Target min/average/max coverage = 0.81020882/1.0000631/1.9564777
+        Source average openness/error/depth/angle = 7.7484339e-17/0.00013661242/7.2525535e-06/0.0065440647
+        Source max openness/error/depth/angle = 2.2271876e-15/0.40372304/0.025216415/24.860558
+        9422 couplings calculated in 0.865402s
+
+Mapping geometric fields
+--> FOAM Warning : 
+    From function const Foam::HashTable<Foam::List<int>, Foam::word>& Foam::polyBoundaryMesh::groupPatchIndices() const
+    in file meshes/polyMesh/polyBoundaryMesh/polyBoundaryMesh.C at line 506
+    Removing patchGroup 'symmetry' which clashes with patch 3 of the same name.
+--> FOAM Warning : 
+    From function void Foam::mapVolTypeFields(const Foam::fvMeshToFvMesh&, const wordReList&, const Foam::HashSet<>&, const Foam::IOobjectList&) [with Type = double; Foam::wordReList = Foam::List<Foam::wordRe>]
+    in file mapGeometricFields.C at line 74
+    Mapping of field p will not utilise the corresponding field in the target case, as the map is consistent (i.e., all patches are mapped)
+    mapping into existing field p
+--> FOAM Warning : 
+    From function const Foam::HashTable<Foam::List<int>, Foam::word>& Foam::polyBoundaryMesh::groupPatchIndices() const
+    in file meshes/polyMesh/polyBoundaryMesh/polyBoundaryMesh.C at line 506
+    Removing patchGroup 'symmetry' which clashes with patch 3 of the same name.
+--> FOAM Warning : 
+    From function void Foam::mapVolTypeFields(const Foam::fvMeshToFvMesh&, const wordReList&, const Foam::HashSet<>&, const Foam::IOobjectList&) [with Type = double; Foam::wordReList = Foam::List<Foam::wordRe>]
+    in file mapGeometricFields.C at line 74
+    Mapping of field nut will not utilise the corresponding field in the target case, as the map is consistent (i.e., all patches are mapped)
+    mapping into existing field nut
+--> FOAM Warning : 
+    From function void Foam::mapVolTypeFields(const Foam::fvMeshToFvMesh&, const wordReList&, const Foam::HashSet<>&, const Foam::IOobjectList&) [with Type = double; Foam::wordReList = Foam::List<Foam::wordRe>]
+    in file mapGeometricFields.C at line 74
+    Mapping of field k will not utilise the corresponding field in the target case, as the map is consistent (i.e., all patches are mapped)
+    mapping into existing field k
+--> FOAM Warning : 
+    From function void Foam::mapVolTypeFields(const Foam::fvMeshToFvMesh&, const wordReList&, const Foam::HashSet<>&, const Foam::IOobjectList&) [with Type = double; Foam::wordReList = Foam::List<Foam::wordRe>]
+    in file mapGeometricFields.C at line 74
+    Mapping of field omega will not utilise the corresponding field in the target case, as the map is consistent (i.e., all patches are mapped)
+    mapping into existing field omega
+    creating new field yPlus
+    creating new field wallShearStress
+--> FOAM Warning : 
+    From function void Foam::mapVolTypeFields(const Foam::fvMeshToFvMesh&, const wordReList&, const Foam::HashSet<>&, const Foam::IOobjectList&) [with Type = Foam::Vector<double>; Foam::wordReList = Foam::List<Foam::wordRe>]
+    in file mapGeometricFields.C at line 74
+    Mapping of field U will not utilise the corresponding field in the target case, as the map is consistent (i.e., all patches are mapped)
+    mapping into existing field U
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/studies/demo/cases/c000/processor0/0/U"
+
+End
+
+Finalising parallel run

@@ -1,0 +1,47 @@
+{
+  "case": "c000",
+  "study": "ioniq6",
+  "label": "baseline",
+  "params": {
+    "ride_height": 0.0,
+    "hood_height": 0.0,
+    "front_corner": 0.0,
+    "windshield_rake": 0.0,
+    "roof_rear_drop": 0.0,
+    "spoiler_length": 0.0,
+    "tail_taper": 0.0,
+    "diffuser_angle": 0.0,
+    "mirror_scale": 1.0,
+    "mode:ioniq6_rear_taper": 0.0,
+    "mode:ioniq6_trunk_drop": 0.0
+  },
+  "frontal_area": 2.333984,
+  "geometry_source": "/home/riche3488/aero_project/2_shape_morphing/studies/ioniq6/geometry/c000",
+  "vehicle": "Hyundai IONIQ 6",
+  "cfd_layout": "fused_regions",
+  "patches": [
+    "body",
+    "wheelFront",
+    "wheelRear"
+  ],
+  "wheels": {
+    "front": {
+      "x": 0.85,
+      "y": 0.8175,
+      "z": 0.3475,
+      "r": 0.3525,
+      "width": 0.225
+    },
+    "rear": {
+      "x": 3.8,
+      "y": 0.822,
+      "z": 0.3475,
+      "r": 0.3525,
+      "width": 0.225
+    }
+  },
+  "reference_cd": 0.21,
+  "n_iter": 1500,
+  "n_avg": 500,
+  "init": "potential"
+}

@@ -1,0 +1,56 @@
+{
+  "description": "drag the rear roof / spoiler lip down (example mode, units: m)",
+  "units": "m",
+  "symmetry": "y",
+  "planes": [
+    {
+      "point": [
+        0,
+        0,
+        0
+      ],
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "blend": 0.05
+    }
+  ],
+  "handles": [
+    {
+      "name": "spoiler_lip",
+      "center": [
+        4.38,
+        0.0,
+        1.565
+      ],
+      "disp": [
+        0,
+        0,
+        -0.05
+      ],
+      "radius": [
+        0.9,
+        1.4,
+        0.6
+      ]
+    }
+  ],
+  "anchors": [
+    {
+      "name": "B-pillar roof",
+      "center": [
+        2.9,
+        0.0,
+        1.605
+      ],
+      "radius": [
+        0.9,
+        1.4,
+        0.6
+      ]
+    }
+  ],
+  "source_geometry": "ioniq5_parametric"
+}

@@ -1,0 +1,7 @@
+case,mode:ioniq6_rear_taper,mode:ioniq6_trunk_drop
+c000,0,0
+c001,0,-2
+c002,0,2
+c003,-2,0
+c004,2,0
+c005,1,1

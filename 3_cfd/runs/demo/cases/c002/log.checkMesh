@@ -1,0 +1,150 @@
+KWLeeWS.166663RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166658RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166657RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166660RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166659RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166662RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166661RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166664RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166663RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166658RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166657RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166662RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166659RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166664RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166661RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+KWLeeWS.166660RTC timebase, using 213 picos/cycle from /proc instead of the detected 195 picos/cycle
+
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 12-86e126a7bc4d
+Exec   : checkMesh -parallel
+Date   : Nov 14 2026
+Time   : 16:22:47
+Host   : "KWLeeWS"
+PID    : 166657
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/studies/demo/cases/c002
+nProcs : 8
+Slaves : 
+7
+(
+"KWLeeWS.166658"
+"KWLeeWS.166659"
+"KWLeeWS.166660"
+"KWLeeWS.166661"
+"KWLeeWS.166662"
+"KWLeeWS.166663"
+"KWLeeWS.166664"
+)
+
+Pstream initialised with:
+    floatTransfer      : false
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/studies/demo/cases/c002/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+Create polyMesh for time = 0
+
+Time = 0s
+
+Mesh stats
+    points:           1740466
+    faces:            4902907
+    internal faces:   4713731
+    cells:            1583718
+    faces per cell:   6.0721909
+    boundary patches: 14
+    point zones:      0
+    face zones:       0
+    cell zones:       0
+
+Overall number of cells of each type:
+    hexahedra:     1522710
+    prisms:        10923
+    wedges:        5
+    pyramids:      0
+    tet wedges:    36
+    tetrahedra:    1
+    polyhedra:     50043
+    Breakdown of polyhedra by number of faces:
+        faces   number of cells
+            4   2054
+            5   1571
+            6   7036
+            7   3064
+            8   1207
+            9   29343
+           10   27
+           11   6
+           12   4783
+           15   920
+           17   1
+           18   31
+
+Checking topology...
+    Boundary definition OK.
+    Cell to face addressing OK.
+    Point usage OK.
+    Upper triangular ordering OK.
+    Face vertices OK.
+    Number of regions: 1 (OK).
+
+Checking basic patch addressing...
+                   Patch    Faces   Points
+                   inlet      612      683
+                  outlet     1365     1475
+              freestream     2240     2349
+                symmetry    33332    35109
+                  ground    35138    36620
+                    body    57467    59998
+              wheelFront     4945     5497
+               wheelRear     4555     5092
+                  mirror      934     1221
+
+Checking geometry...
+    Overall domain bounding box (-10 0 0) (30 6.0000013 8)
+    Mesh has 3 geometric (non-empty/wedge) directions (1 1 1)
+    Mesh has 3 solution (non-empty) directions (1 1 1)
+    Max cell openness = 4.6684908e-16 OK.
+    Max aspect ratio = 30.505027 OK.
+    Minimum face area = 4.8452889e-07. Maximum face area = 0.25011497.  Face area magnitudes OK.
+    Min volume = 1.6678905e-08. Max volume = 0.1250429.  Total volume = 1915.2929.  Cell volumes OK.
+    Mesh non-orthogonality Max: 64.912323 average: 5.6459155
+    Non-orthogonality check OK.
+    Face pyramids OK.
+ ***Max skewness = 5.0912825, 2 highly skew faces detected which may impair the quality of the results
+    Coupled point location match (average 0) OK.
+
+Failed 1 mesh checks.
+
+End
+
+Finalising parallel run

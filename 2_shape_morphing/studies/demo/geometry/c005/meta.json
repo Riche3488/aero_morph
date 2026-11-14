@@ -1,0 +1,142 @@
+{
+  "case": "c005",
+  "study": "demo",
+  "label": "mode:rear_roof_drop\u00d71",
+  "params": {
+    "ride_height": 0.0,
+    "hood_height": 0.0,
+    "front_corner": 0.0,
+    "windshield_rake": 0.0,
+    "roof_rear_drop": 0.0,
+    "spoiler_length": 0.0,
+    "tail_taper": 0.0,
+    "diffuser_angle": 0.0,
+    "mirror_scale": 1.0,
+    "mode:front_bumper_push": 0.0,
+    "mode:rear_roof_drop": 1.0
+  },
+  "vehicle": "IONIQ 5",
+  "base": "ioniq5_parametric",
+  "units": "m",
+  "frontal_area": 2.651424,
+  "parts": {
+    "body": {
+      "triangles": 121632,
+      "volume_m3": 8.998702
+    },
+    "wheel_FL": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "wheel_FR": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "wheel_RL": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "wheel_RR": {
+      "triangles": 7680,
+      "volume_m3": 0.089146
+    },
+    "mirror_L": {
+      "triangles": 2208,
+      "volume_m3": 0.002572
+    },
+    "mirror_R": {
+      "triangles": 2208,
+      "volume_m3": 0.002572
+    }
+  },
+  "cfd_layout": "separate_parts",
+  "wheels": {
+    "front": {
+      "x": 0.845,
+      "y": 0.819,
+      "z": 0.36554999999999993,
+      "r": 0.36554999999999993,
+      "width": 0.235
+    },
+    "rear": {
+      "x": 3.845,
+      "y": 0.8235,
+      "z": 0.36554999999999993,
+      "r": 0.36554999999999993,
+      "width": 0.235
+    }
+  },
+  "bbox": [
+    [
+      0.0,
+      -0.945,
+      0.16
+    ],
+    [
+      4.635,
+      0.945,
+      1.605
+    ]
+  ],
+  "drag_modes": {
+    "rear_roof_drop": 1.0
+  },
+  "qa": {
+    "body": {
+      "max_displacement": 0.049999656676119386,
+      "moved_vertices_pct": 12.690321944161267,
+      "min_detJ": 0.8372022067856604,
+      "flipped_triangles": 0,
+      "max_normal_rotation_deg": 6.64197184758149,
+      "area_ratio_min": 0.8475429429583643,
+      "area_ratio_max": 1.0127079032271127,
+      "handle_ratio_max": 0.08333333333333334,
+      "clearance_to_frozen_before": 0.45225555405742063,
+      "clearance_to_frozen_after": 0.45225555405703544,
+      "status": "OK"
+    },
+    "mirror_L": {
+      "max_displacement": 0.0,
+      "moved_vertices_pct": 0.0,
+      "min_detJ": 1.0,
+      "flipped_triangles": 0,
+      "max_normal_rotation_deg": 1.7075472925031877e-06,
+      "area_ratio_min": 1.0,
+      "area_ratio_max": 1.0,
+      "handle_ratio_max": 0.08333333333333334,
+      "status": "OK"
+    },
+    "mirror_R": {
+      "max_displacement": 0.0,
+      "moved_vertices_pct": 0.0,
+      "min_detJ": 1.0,
+      "flipped_triangles": 0,
+      "max_normal_rotation_deg": 1.7075472925031877e-06,
+      "area_ratio_min": 1.0,
+      "area_ratio_max": 1.0,
+      "handle_ratio_max": 0.08333333333333334,
+      "status": "OK"
+    }
+  },
+  "signature": {
+    "params": {
+      "ride_height": 0.0,
+      "hood_height": 0.0,
+      "front_corner": 0.0,
+      "windshield_rake": 0.0,
+      "roof_rear_drop": 0.0,
+      "spoiler_length": 0.0,
+      "tail_taper": 0.0,
+      "diffuser_angle": 0.0,
+      "mirror_scale": 1.0,
+      "mode:front_bumper_push": 0.0,
+      "mode:rear_roof_drop": 1.0
+    },
+    "res": 0.5,
+    "modes_hash": "f2fc77548991",
+    "base": {
+      "type": "ioniq5_parametric"
+    }
+  },
+  "status": "ok"
+}

@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Drag Morph Editor</title>
+<style>
+  :root { --bg:#14171c; --panel:#1d2128; --line:#2c323c; --text:#dfe4ea; --dim:#8b95a3; --acc:#4da3ff; --ok:#3ecf8e; --warn:#f5a524; --bad:#ff5d5d; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font:13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #app { display:flex; height:100%; }
+  #panel { width:310px; min-width:310px; background:var(--panel); border-right:1px solid var(--line); overflow-y:auto; padding:12px 14px; }
+  #view { flex:1; position:relative; }
+  h1 { font-size:15px; margin:0 0 4px; }
+  h2 { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); margin:16px 0 6px; }
+  .row { display:flex; align-items:center; gap:6px; margin:4px 0; }
+  .row label { flex:0 0 92px; color:var(--dim); }
+  .row input[type=range] { flex:1; }
+  .val { width:58px; text-align:right; font-variant-numeric:tabular-nums; }
+  button, select { background:#272c35; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:5px 9px; cursor:pointer; font:inherit; }
+  button:hover { border-color:var(--acc); }
+  button.on { background:var(--acc); border-color:var(--acc); color:#06121f; font-weight:600; }
+  .seg { display:flex; gap:4px; flex-wrap:wrap; }
+  textarea { width:100%; height:120px; background:#11141a; color:#cfe3ff; border:1px solid var(--line); border-radius:6px; font:11px/1.3 ui-monospace, monospace; }
+  #status { position:absolute; left:12px; bottom:10px; background:rgba(20,23,28,.85); padding:6px 10px; border-radius:6px; font-variant-numeric:tabular-nums; }
+  #hint { position:absolute; right:12px; top:10px; background:rgba(20,23,28,.85); padding:8px 11px; border-radius:6px; color:var(--dim); max-width:330px; }
+  #drop { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:16px; pointer-events:none; }
+  .qa-ok { color:var(--ok); } .qa-warn { color:var(--warn); } .qa-bad { color:var(--bad); }
+  ul#list { list-style:none; padding:0; margin:0; max-height:150px; overflow-y:auto; }
+  ul#list li { padding:3px 6px; border-radius:4px; cursor:pointer; display:flex; justify-content:space-between; }
+  ul#list li.sel { background:#2b3442; }
+  kbd { background:#2a2f38; border:1px solid var(--line); border-radius:3px; padding:0 4px; font-size:11px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="panel">
+    <h1>Drag Morph Editor</h1>
+    <div style="color:var(--dim)">RBF (Wendland C2) handle morphing for any STL, using the same maths as <code>2_shape_morphing/rbf.py</code>.</div>
+
+    <h2>Geometry</h2>
+    <input type="file" id="file" accept=".stl">
+    <div id="info" style="color:var(--dim);margin-top:4px">no model loaded (or drop an STL on the view)</div>
+
+    <h2>Tool</h2>
+    <div class="seg">
+      <button id="t-handle" class="on">Drag handle <kbd>1</kbd></button>
+      <button id="t-anchor">Anchor <kbd>2</kbd></button>
+      <button id="t-orbit">Orbit only <kbd>3</kbd></button>
+    </div>
+    <div class="row" style="margin-top:8px"><label>Constraint</label>
+      <select id="constraint">
+        <option value="screen">free (screen plane)</option>
+        <option value="normal">surface normal</option>
+        <option value="x">x only</option><option value="y">y only</option><option value="z">z only</option>
+      </select>
+    </div>
+
+    <h2>Influence (new / selected)</h2>
+    <div class="row"><label>Radius</label><input type="range" id="rad" min="0" max="100" value="35"><span class="val" id="rad-v"></span></div>
+    <div class="row"><label>Stretch x</label><input type="range" id="ax" min="-100" max="100" value="0"><span class="val" id="ax-v"></span></div>
+    <div class="row"><label>Stretch y</label><input type="range" id="ay" min="-100" max="100" value="0"><span class="val" id="ay-v"></span></div>
+    <div class="row"><label>Stretch z</label><input type="range" id="az" min="-100" max="100" value="0"><span class="val" id="az-v"></span></div>
+
+    <h2>Options</h2>
+    <div class="row"><label>Amplitude</label><input type="range" id="amp" min="-200" max="200" value="100"><span class="val" id="amp-v"></span></div>
+    <div class="row"><label><input type="checkbox" id="sym" checked> y-symmetry</label></div>
+    <div class="row"><label><input type="checkbox" id="ground"> ground lock</label>
+      z=<input type="number" id="groundz" value="0" step="0.01" style="width:70px"></div>
+    <div class="row"><label><input type="checkbox" id="colors" checked> colour map</label></div>
+
+    <h2>Items</h2>
+    <ul id="list"></ul>
+    <div class="seg" style="margin-top:6px">
+      <button id="del">Delete <kbd>Del</kbd></button>
+      <button id="undo">Undo <kbd>Ctrl+Z</kbd></button>
+      <button id="reset">Clear all</button>
+    </div>
+
+    <h2>Quality</h2>
+    <div id="qa">–</div>
+
+    <div id="srv" hidden>
+      <h2>Project (morph_gui server)</h2>
+      <div id="srv-info" style="color:var(--dim)"></div>
+      <div class="row"><label>Saved modes</label><select id="srv-modes" style="flex:1"></select><button id="srv-load">Load</button></div>
+      <div class="seg" style="margin-top:6px">
+        <button id="srv-save">Save to modes/</button>
+        <button id="srv-apply">Apply in Python (full res + QA)</button>
+      </div>
+      <div id="srv-out" style="margin-top:6px"></div>
+    </div>
+
+    <h2>Export / import</h2>
+    <div class="row"><label>Mode name</label><input id="mname" value="my_mode" style="flex:1"></div>
+    <div class="seg">
+      <button id="exp-json">Save mode JSON</button>
+      <button id="exp-stl">Save morphed STL</button>
+      <button id="imp-btn">Load JSON</button>
+      <input type="file" id="imp" accept=".json" style="display:none">
+    </div>
+    <textarea id="json" spellcheck="false" style="margin-top:6px"></textarea>
+    <div style="color:var(--dim);margin-top:6px">Apply to full-resolution geometry:<br>
+      <code>python3 2_shape_morphing/drag_morph.py --in body.stl --mode my_mode.json=1.0 --out out --render</code></div>
+  </div>
+  <div id="view">
+    <div id="drop">Load an STL (left panel or drag &amp; drop)</div>
+    <div id="hint"><b>Drag handle</b>: press on the surface and drag.<br>
+      <b>Anchor</b>: click to pin a point (it does not move).<br>
+      Click a handle sphere to select it or re-drag it. Right-drag or Orbit mode rotates, wheel zooms.<br>
+      <kbd>Shift</kbd> while dragging = along surface normal.</div>
+    <div id="status"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+// ============================================================== RBF core (mirrors 2_shape_morphing/rbf.py)
+const phi  = t => t >= 1 ? 0 : Math.pow(1 - t, 4) * (4 * t + 1);
+const dphi = t => t >= 1 ? 0 : -20 * t * Math.pow(1 - t, 3);
+const smooth = t => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
+
+function solve(A, B) {                    // Gaussian elimination, A n×n, B n×3
+  const n = A.length, M = A.map((r, i) => r.concat(B[i]));
+  for (let i = 0; i < n; i++) M[i][i] += 1e-10;
+  for (let c = 0; c < n; c++) {
+    let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    const d = M[c][c] || 1e-12;
+    for (let r = 0; r < n; r++) if (r !== c) {
+      const f = M[r][c] / d; if (f === 0) continue;
+      for (let k = c; k < n + 3; k++) M[r][k] -= f * M[c][k];
+    }
+  }
+  return M.map((r, i) => [r[n] / r[i], r[n + 1] / r[i], r[n + 2] / r[i]]);
+}
+
+// ============================================================== state
+let scene, camera, renderer, controls, mesh = null, geom, P0, U, N0, nV = 0, bbox, size = 1;
+let handles = [], anchors = [], history = [], selected = null, tool = "handle";
+let dragging = null;
+const cache = new Map();                  // centre|radius -> {idx, phi, q}
+const view = document.getElementById("view");
+const $ = id => document.getElementById(id);
+
+// ============================================================== three.js setup
+function init3d() {
+  scene = new THREE.Scene(); scene.background = new THREE.Color(0x14171c);
+  camera = new THREE.PerspectiveCamera(35, 1, 0.001, 1e6); camera.up.set(0, 0, 1);
+  renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(window.devicePixelRatio);
+  view.appendChild(renderer.domElement);
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 0.75));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.65); dl.position.set(-1, 1.5, 2); scene.add(dl);
+  const dl2 = new THREE.DirectionalLight(0xffffff, 0.25); dl2.position.set(1, -1, -0.5); scene.add(dl2);
+  window.addEventListener("resize", resize); resize();
+  (function loop() { requestAnimationFrame(loop); renderer.render(scene, camera); })();
+}
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight;
+  renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+
+// ============================================================== STL loading
+function parseSTL(buf) {
+  const dv = new DataView(buf);
+  const n = buf.byteLength >= 84 ? dv.getUint32(80, true) : 0;
+  if (n > 0 && 84 + 50 * n === buf.byteLength) {
+    const pos = new Float32Array(n * 9);
+    for (let i = 0; i < n; i++) for (let k = 0; k < 9; k++) pos[i * 9 + k] = dv.getFloat32(84 + i * 50 + 12 + k * 4, true);
+    return pos;
+  }
+  const txt = new TextDecoder().decode(buf), re = /vertex\s+(\S+)\s+(\S+)\s+(\S+)/g, out = []; let m;
+  while ((m = re.exec(txt))) out.push(+m[1], +m[2], +m[3]);
+  return new Float32Array(out);
+}
+function weld(tri) {                       // STL triangle soup -> indexed mesh (shared vertices)
+  let mn = Infinity, mx = -Infinity;
+  for (let i = 0; i < tri.length; i++) { mn = Math.min(mn, tri[i]); mx = Math.max(mx, tri[i]); }
+  const q = 1e7 / Math.max(mx - mn, 1e-12), map = new Map(), idx = new Uint32Array(tri.length / 3), pos = [];
+  for (let k = 0; k < tri.length / 3; k++) {
+    const key = Math.round(tri[3 * k] * q) + "," + Math.round(tri[3 * k + 1] * q) + "," + Math.round(tri[3 * k + 2] * q);
+    let v = map.get(key);
+    if (v === undefined) { v = pos.length / 3; map.set(key, v); pos.push(tri[3 * k], tri[3 * k + 1], tri[3 * k + 2]); }
+    idx[k] = v;
+  }
+  return { pos: new Float32Array(pos), idx };
+}
+function loadModel(buf, name) {
+  const tri = parseSTL(buf);
+  if (!tri.length) { alert("could not read STL"); return; }
+  if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); }
+  const { pos, idx } = weld(tri);
+  nV = pos.length / 3; P0 = pos.slice(); U = new Float32Array(pos.length);
+  geom = new THREE.BufferGeometry();
+  geom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geom.setAttribute("color", new THREE.BufferAttribute(new Float32Array(pos.length).fill(0.8), 3));
+  geom.setIndex(new THREE.BufferAttribute(idx, 1));
+  geom.computeVertexNormals(); geom.computeBoundingBox(); geom.computeBoundingSphere();
+  N0 = geom.attributes.normal.array.slice();             // smooth vertex normals of the original shape
+  bbox = geom.boundingBox; size = bbox.getSize(new THREE.Vector3()).length();
+  mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: false, roughness: .6, metalness: .05, side: THREE.DoubleSide }));
+  scene.add(mesh);
+  const c = bbox.getCenter(new THREE.Vector3());
+  controls.target.copy(c);
+  camera.position.copy(c).add(new THREE.Vector3(-0.9, -1.4, 0.6).multiplyScalar(size * 0.9));
+  camera.near = size / 1000; camera.far = size * 100; camera.updateProjectionMatrix();
+  $("groundz").value = Math.max(0, bbox.min.z).toFixed(3);
+  const s = bbox.getSize(new THREE.Vector3());
+  $("info").innerHTML = `${name}<br>${(idx.length / 3).toLocaleString()} triangles · ${nV.toLocaleString()} vertices · size ${s.x.toPrecision(4)} × ${s.y.toPrecision(4)} × ${s.z.toPrecision(4)} (file units)`;
+  $("drop").style.display = "none";
+  handles = []; anchors = []; history = []; selected = null; cache.clear();
+  updateSliders(); apply(true);
+}
+$("file").addEventListener("change", e => { const f = e.target.files[0]; if (f) f.arrayBuffer().then(b => loadModel(b, f.name)); });
+view.addEventListener("dragover", e => e.preventDefault());
+view.addEventListener("drop", e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) f.arrayBuffer().then(b => loadModel(b, f.name)); });
+
+// ============================================================== influence radius from sliders
+const baseR = () => size * 0.02 * Math.pow(30, $("rad").value / 100);      // 2 % .. 60 % of model size
+const stretch = id => Math.pow(3, $(id).value / 100);
+function radiusFromSliders() { const R = baseR(); return [R * stretch("ax"), R * stretch("ay"), R * stretch("az")]; }
+function updateSliders() {
+  const r = radiusFromSliders();
+  $("rad-v").textContent = baseR().toPrecision(3);
+  ["ax", "ay", "az"].forEach((id, i) => $(id + "-v").textContent = r[i].toPrecision(3));
+  $("amp-v").textContent = ($("amp").value / 100).toFixed(2);
+}
+["rad", "ax", "ay", "az"].forEach(id => $(id).addEventListener("input", () => {
+  updateSliders();
+  if (selected) { selected.item.r = radiusFromSliders(); apply(true); }
+}));
+$("amp").addEventListener("input", () => { updateSliders(); apply(true); });
+["sym", "ground", "groundz", "colors"].forEach(id => $(id).addEventListener("input", () => apply(true)));
+
+// ============================================================== centres (handles + anchors + mirrors)
+function centres() {
+  const amp = $("amp").value / 100, C = [];
+  handles.forEach(h => C.push({ c: h.c, d: h.d.map(v => v * amp), r: h.r }));
+  anchors.forEach(a => C.push({ c: a.c, d: [0, 0, 0], r: a.r }));
+  if ($("sym").checked) {
+    const n = C.length;
+    for (let i = 0; i < n; i++) {
+      const { c, d, r } = C[i];
+      if (Math.abs(c[1]) > 1e-9 * size) C.push({ c: [c[0], -c[1], c[2]], d: [d[0], -d[1], d[2]], r });
+      else C[i].d = [d[0], 0, d[2]];
+    }
+  }
+  return C;
+}
+function influence(c, r) {
+  const key = c.join(",") + "|" + r.join(",");
+  if (cache.has(key)) return cache.get(key);
+  const idx = [], ph = [], q = [];
+  for (let k = 0; k < nV; k++) {
+    const qx = (P0[3 * k] - c[0]) / r[0]; if (qx <= -1 || qx >= 1) continue;
+    const qy = (P0[3 * k + 1] - c[1]) / r[1]; if (qy <= -1 || qy >= 1) continue;
+    const qz = (P0[3 * k + 2] - c[2]) / r[2]; if (qz <= -1 || qz >= 1) continue;
+    const t = Math.hypot(qx, qy, qz); if (t >= 1) continue;
+    idx.push(k); ph.push(phi(t)); q.push(qx, qy, qz);
+  }
+  const v = { idx: Int32Array.from(idx), phi: Float32Array.from(ph), q: Float32Array.from(q) };
+  if (cache.size > 400) cache.clear();
+  cache.set(key, v); return v;
+}
+
+// ============================================================== apply morph
+let lastW = [], lastC = [];
+function apply(full) {
+  if (!mesh) return;
+  const C = centres();
+  U.fill(0);
+  let W = [];
+  if (C.length) {
+    const A = C.map(ci => C.map(cj => phi(Math.hypot((ci.c[0] - cj.c[0]) / cj.r[0], (ci.c[1] - cj.c[1]) / cj.r[1], (ci.c[2] - cj.c[2]) / cj.r[2]))));
+    W = solve(A, C.map(ci => ci.d));
+    C.forEach((cj, j) => {
+      const inf = influence(cj.c, cj.r), w = W[j];
+      for (let m = 0; m < inf.idx.length; m++) {
+        const k = 3 * inf.idx[m], f = inf.phi[m];
+        U[k] += w[0] * f; U[k + 1] += w[1] * f; U[k + 2] += w[2] * f;
+      }
+    });
+    if ($("ground").checked) {
+      const z0 = +$("groundz").value, blend = 0.05 * size / 5.2;
+      for (let k = 0; k < nV; k++) U[3 * k + 2] *= smooth(Math.abs(P0[3 * k + 2] - z0) / blend);
+    }
+  }
+  lastW = W; lastC = C;
+  const pos = geom.attributes.position.array;
+  for (let i = 0; i < pos.length; i++) pos[i] = P0[i] + U[i];
+  geom.attributes.position.needsUpdate = true;
+  if (full || nV < 600000) geom.computeVertexNormals();
+  colour();
+  drawGizmos();
+  if (full) { quality(); listItems(); exportText(); }
+  status();
+}
+function colour() {
+  const col = geom.attributes.color.array;
+  if (!$("colors").checked) { col.fill(0.82); geom.attributes.color.needsUpdate = true; return; }
+  let lim = 1e-30; const un = new Float32Array(nV);
+  for (let k = 0; k < nV; k++) { un[k] = U[3 * k] * N0[3 * k] + U[3 * k + 1] * N0[3 * k + 1] + U[3 * k + 2] * N0[3 * k + 2]; lim = Math.max(lim, Math.abs(un[k])); }
+  for (let k = 0; k < nV; k++) {
+    const s = un[k] / lim;                               // blue (inward) - white - red (outward)
+    const base = 0.86;
+    col[3 * k]     = s > 0 ? base : base * (1 + s) + 0.15 * -s;
+    col[3 * k + 1] = base * (1 - 0.65 * Math.abs(s));
+    col[3 * k + 2] = s < 0 ? base : base * (1 - s) + 0.15 * s;
+  }
+  geom.attributes.color.needsUpdate = true;
+}
+
+// ============================================================== quality: min det(I + grad u) over moved vertices
+function quality() {
+  if (!lastC.length) { $("qa").innerHTML = "–"; return; }
+  const J = new Map();
+  lastC.forEach((cj, j) => {
+    const inf = influence(cj.c, cj.r), w = lastW[j];
+    for (let m = 0; m < inf.idx.length; m++) {
+      const qx = inf.q[3 * m], qy = inf.q[3 * m + 1], qz = inf.q[3 * m + 2], t = Math.max(Math.hypot(qx, qy, qz), 1e-12);
+      const g = dphi(t), gx = g * qx / (cj.r[0] * t), gy = g * qy / (cj.r[1] * t), gz = g * qz / (cj.r[2] * t);
+      const k = inf.idx[m]; let a = J.get(k); if (!a) { a = new Float64Array(9); J.set(k, a); }
+      a[0] += w[0] * gx; a[1] += w[0] * gy; a[2] += w[0] * gz;
+      a[3] += w[1] * gx; a[4] += w[1] * gy; a[5] += w[1] * gz;
+      a[6] += w[2] * gx; a[7] += w[2] * gy; a[8] += w[2] * gz;
+    }
+  });
+  let mn = 1;
+  J.forEach(a => {
+    const m00 = 1 + a[0], m11 = 1 + a[4], m22 = 1 + a[8];
+    const det = m00 * (m11 * m22 - a[5] * a[7]) - a[1] * (a[3] * m22 - a[5] * a[6]) + a[2] * (a[3] * a[7] - m11 * a[6]);
+    mn = Math.min(mn, det);
+  });
+  let umax = 0; for (let k = 0; k < nV; k++) umax = Math.max(umax, Math.hypot(U[3 * k], U[3 * k + 1], U[3 * k + 2]));
+  const cls = mn > 0.2 ? "qa-ok" : mn > 0 ? "qa-warn" : "qa-bad";
+  const msg = mn > 0.2 ? "OK" : mn > 0 ? "fold risk: enlarge radius" : "FOLDED: reduce drag or enlarge radius";
+  $("qa").innerHTML = `<span class="${cls}">min det J = ${mn.toFixed(3)}  ${msg}</span><br>max |u| = ${umax.toPrecision(3)} · moved ${(100 * J.size / nV).toFixed(1)} % of vertices`;
+}
+
+// ============================================================== gizmos
+const gizmo = new THREE.Group();
+function drawGizmos() {
+  if (!scene) return;
+  scene.remove(gizmo); gizmo.clear(); scene.add(gizmo);
+  const s = size * 0.007, amp = $("amp").value / 100;
+  const add = (item, isHandle) => {
+    const p = isHandle ? item.c.map((v, i) => v + item.d[i] * amp) : item.c;
+    const sel = selected && selected.item === item;
+    const m = new THREE.Mesh(new THREE.SphereGeometry(sel ? s * 1.5 : s, 16, 12),
+      new THREE.MeshBasicMaterial({ color: isHandle ? (sel ? 0xffe14d : 0xff9a3c) : (sel ? 0xff9b9b : 0xff4040), depthTest: false }));
+    m.position.fromArray(p); m.renderOrder = 10; m.userData = { item, isHandle }; gizmo.add(m);
+    if (isHandle) {
+      const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...item.c), new THREE.Vector3(...p)]);
+      gizmo.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xffe14d, depthTest: false })));
+    }
+    if (sel) {
+      const e = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), new THREE.MeshBasicMaterial({ color: 0x4da3ff, wireframe: true, transparent: true, opacity: 0.25 }));
+      e.scale.set(...item.r); e.position.fromArray(item.c); gizmo.add(e);
+    }
+  };
+  handles.forEach(h => add(h, true)); anchors.forEach(a => add(a, false));
+}
+
+// ============================================================== interaction
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function setRay(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+}
+function setTool(t) {
+  tool = t; ["handle", "anchor", "orbit"].forEach(k => $("t-" + k).classList.toggle("on", k === t));
+}
+["handle", "anchor", "orbit"].forEach(k => $("t-" + k).addEventListener("click", () => setTool(k)));
+
+renderer_ready();
+function renderer_ready() {
+  init3d();
+  const el = renderer.domElement;
+  el.addEventListener("pointerdown", e => {
+    if (!mesh || e.button !== 0) return;
+    setRay(e);
+    const gh = ray.intersectObjects(gizmo.children.filter(o => o.userData.item), false)[0];
+    if (gh) {                                            // pick existing handle/anchor
+      selected = { item: gh.object.userData.item, isHandle: gh.object.userData.isHandle };
+      syncSlidersTo(selected.item);
+      if (selected.isHandle && tool !== "orbit") startDrag(selected.item, e);
+      apply(true); return;
+    }
+    if (tool === "orbit") return;
+    const hit = ray.intersectObject(mesh, false)[0];
+    if (!hit) return;
+    const p = hit.point.toArray(), n = hit.face.normal.toArray();
+    if (tool === "anchor") {
+      const a = { c: p, r: radiusFromSliders(), name: "anchor" + (anchors.length + 1) };
+      anchors.push(a); history.push(a); selected = { item: a, isHandle: false }; apply(true); return;
+    }
+    const h = { c: p, d: [0, 0, 0], r: radiusFromSliders(), n, name: "h" + (handles.length + 1) };
+    handles.push(h); history.push(h); selected = { item: h, isHandle: true };
+    startDrag(h, e);
+  });
+  el.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    setRay(e);
+    const q = new THREE.Vector3();
+    if (!ray.ray.intersectPlane(dragging.plane, q)) return;
+    const h = dragging.h, amp = $("amp").value / 100 || 1;
+    let v = [q.x - h.c[0], q.y - h.c[1], q.z - h.c[2]].map(x => x / amp);
+    const mode = e.shiftKey ? "normal" : $("constraint").value;
+    if (mode === "normal") { const s = v[0] * h.n[0] + v[1] * h.n[1] + v[2] * h.n[2]; v = h.n.map(x => x * s); }
+    else if (mode === "x") v = [v[0], 0, 0]; else if (mode === "y") v = [0, v[1], 0]; else if (mode === "z") v = [0, 0, v[2]];
+    h.d = v; apply(false);
+  });
+  window.addEventListener("pointerup", () => {
+    if (!dragging) return;
+    dragging = null; controls.enabled = true; apply(true);
+  });
+}
+function startDrag(h, e) {
+  controls.enabled = false;
+  const amp = $("amp").value / 100;
+  const p = new THREE.Vector3(...h.c.map((v, i) => v + h.d[i] * amp));
+  const dir = camera.getWorldDirection(new THREE.Vector3());
+  dragging = { h, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(dir, p) };
+}
+function syncSlidersTo(item) {
+  // keep current sliders but show the item's radius in the readout
+  const r = item.r; $("rad-v").textContent = Math.min(...r).toPrecision(3);
+  ["ax", "ay", "az"].forEach((id, i) => $(id + "-v").textContent = r[i].toPrecision(3));
+}
+function deleteSelected() {
+  if (!selected) return;
+  handles = handles.filter(h => h !== selected.item); anchors = anchors.filter(a => a !== selected.item);
+  history = history.filter(x => x !== selected.item); selected = null; apply(true);
+}
+$("del").addEventListener("click", deleteSelected);
+$("undo").addEventListener("click", () => { const x = history.pop(); if (x) { selected = { item: x }; deleteSelected(); } });
+$("reset").addEventListener("click", () => { handles = []; anchors = []; history = []; selected = null; apply(true); });
+window.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+  if (e.key === "Delete" || e.key === "Backspace") deleteSelected();
+  if (e.key === "z" && (e.ctrlKey || e.metaKey)) $("undo").click();
+  if (e.key === "1") setTool("handle"); if (e.key === "2") setTool("anchor"); if (e.key === "3") setTool("orbit");
+});
+
+// ============================================================== list / status
+function listItems() {
+  const ul = $("list"); ul.innerHTML = "";
+  [...handles.map(h => [h, true]), ...anchors.map(a => [a, false])].forEach(([it, isH]) => {
+    const li = document.createElement("li");
+    const dm = isH ? Math.hypot(...it.d).toPrecision(3) : "pinned";
+    li.innerHTML = `<span>${isH ? "◆" : "●"} ${it.name}</span><span style="color:var(--dim)">${isH ? "|d|=" + dm : dm} · r=${Math.min(...it.r).toPrecision(3)}</span>`;
+    if (selected && selected.item === it) li.classList.add("sel");
+    li.onclick = () => { selected = { item: it, isHandle: isH }; syncSlidersTo(it); apply(true); };
+    ul.appendChild(li);
+  });
+}
+function status() {
+  const h = selected && selected.isHandle ? selected.item : null;
+  $("status").textContent = h ? `${h.name}  d = (${h.d.map(v => v.toPrecision(3)).join(", ")})  |d| = ${Math.hypot(...h.d).toPrecision(3)}  |d|/r = ${(Math.hypot(...h.d) / Math.min(...h.r)).toFixed(2)}`
+    : `${handles.length} handles · ${anchors.length} anchors`;
+}
+
+// ============================================================== export / import
+const r6 = v => +v.toPrecision(6);
+function spec() {
+  const s = { description: "created with drag_editor.html", units: "same as input STL",
+    handles: handles.map(h => ({ name: h.name, center: h.c.map(r6), disp: h.d.map(r6), radius: h.r.map(r6) })),
+    anchors: anchors.map(a => ({ name: a.name, center: a.c.map(r6), radius: a.r.map(r6) })) };
+  if ($("sym").checked) s.symmetry = "y";
+  if ($("ground").checked) s.planes = [{ point: [0, 0, +$("groundz").value], normal: [0, 0, 1], blend: r6(0.05 * size / 5.2) }];
+  s.preview_amplitude = $("amp").value / 100;
+  return s;
+}
+function exportText() { $("json").value = JSON.stringify(spec(), null, 1); }
+function download(name, blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+$("exp-json").addEventListener("click", () => download(($("mname").value || "mode") + ".json", new Blob([JSON.stringify(spec(), null, 2)], { type: "application/json" })));
+$("exp-stl").addEventListener("click", () => {
+  if (!mesh) return;
+  download(($("mname").value || "morphed") + ".stl", new Blob([stlBytes()]));
+});
+$("imp-btn").addEventListener("click", () => $("imp").click());
+$("imp").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f || !mesh) return;
+  f.text().then(t => applySpec(JSON.parse(t)));
+});
+function stlBytes() {
+  const pos = geom.attributes.position.array, idx = geom.index.array, n = idx.length / 3;
+  const buf = new ArrayBuffer(84 + 50 * n), dv = new DataView(buf);
+  dv.setUint32(80, n, true);
+  for (let i = 0; i < n; i++) for (let c = 0; c < 3; c++) {
+    const v = idx[3 * i + c];
+    for (let k = 0; k < 3; k++) dv.setFloat32(84 + i * 50 + 12 + (3 * c + k) * 4, pos[3 * v + k], true);
+  }
+  return buf;
+}
+function applySpec(s) {                    // load a mode spec into the editor
+  handles = (s.handles || []).map((h, i) => {
+    const n = nearestNormal(h.center);
+    let d = h.disp;
+    if (!d && h.normal_disp !== undefined) d = n.map(v => v * h.normal_disp);
+    const r = [].concat(h.radius); return { c: h.center, d: d || [0, 0, 0], r: r.length === 1 ? [r[0], r[0], r[0]] : r, n, name: h.name || "h" + (i + 1) };
+  });
+  anchors = (s.anchors || []).map((a, i) => { const r = [].concat(a.radius ?? 0.3); return { c: a.center, r: r.length === 1 ? [r[0], r[0], r[0]] : r, name: a.name || "anchor" + (i + 1) }; });
+  $("sym").checked = s.symmetry === "y";
+  $("ground").checked = !!(s.planes && s.planes.length);
+  if (s.planes && s.planes.length) $("groundz").value = s.planes[0].point[2];
+  history = [...handles, ...anchors]; selected = null; apply(true);
+}
+
+// ============================================================== optional: project server (morph_gui.py)
+let SRV = null;
+async function srvRefreshModes(sel) {
+  const r = await fetch("api/modes"); const list = await r.json();
+  $("srv-modes").innerHTML = list.map(m => `<option ${m === sel ? "selected" : ""}>${m}</option>`).join("");
+}
+async function srvInit() {
+  if (!location.protocol.startsWith("http")) return;
+  try { SRV = await (await fetch("api/info")).json(); } catch (e) { return; }
+  $("srv").hidden = false;
+  $("srv-info").innerHTML = `model: <code>${SRV.model}</code><br>modes → <code>${SRV.modes_dir}</code><br>output → <code>${SRV.out_dir}</code>`;
+  $("mname").value = SRV.default_mode_name;
+  await srvRefreshModes();
+  const buf = await (await fetch("api/model.stl")).arrayBuffer();
+  loadModel(buf, SRV.model_name);
+}
+$("srv-load").addEventListener("click", async () => {
+  const name = $("srv-modes").value; if (!name) return;
+  const s = await (await fetch("api/mode?name=" + encodeURIComponent(name))).json();
+  $("mname").value = name; applySpec(s);
+});
+$("srv-save").addEventListener("click", async () => {
+  const name = $("mname").value.trim();
+  const r = await fetch("api/save_mode?name=" + encodeURIComponent(name), { method: "POST", body: JSON.stringify(spec()) });
+  const j = await r.json();
+  $("srv-out").innerHTML = r.ok ? `<span class="qa-ok">saved ${j.path}</span>` : `<span class="qa-bad">${j.error}</span>`;
+  if (r.ok) srvRefreshModes(j.name);
+});
+$("srv-apply").addEventListener("click", async () => {
+  const name = $("mname").value.trim();
+  $("srv-out").innerHTML = "running full-resolution morph in Python …";
+  const r = await fetch("api/apply?name=" + encodeURIComponent(name) + "&amp=" + ($("amp").value / 100), { method: "POST", body: JSON.stringify(spec()) });
+  const j = await r.json();
+  if (!r.ok) { $("srv-out").innerHTML = `<span class="qa-bad">${j.error}</span>`; return; }
+  const q = j.qa, cls = q.status === "OK" ? "qa-ok" : "qa-bad";
+  $("srv-out").innerHTML = `<span class="${cls}">${q.status}</span> · min det J ${q.min_detJ.toFixed(3)} · flips ${q.flipped_triangles} · max|u| ${q.max_displacement.toPrecision(3)}<br>
+    STL: <code>${j.stl}</code><br><a href="${j.png_url}" target="_blank"><img src="${j.png_url}?t=${Date.now()}" style="width:100%;margin-top:4px;border-radius:4px"></a>`;
+});
+srvInit();
+
+function nearestNormal(c) {
+  let best = 1e30, k0 = 0;
+  for (let k = 0; k < nV; k++) { const d = (P0[3 * k] - c[0]) ** 2 + (P0[3 * k + 1] - c[1]) ** 2 + (P0[3 * k + 2] - c[2]) ** 2; if (d < best) { best = d; k0 = k; } }
+  return [N0[3 * k0], N0[3 * k0 + 1], N0[3 * k0 + 2]];
+}
+updateSliders();
+</script>
+</body>
+</html>

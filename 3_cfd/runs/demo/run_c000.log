@@ -1,0 +1,6 @@
+[demo/c000] baseline
+  prepare  (done)
+  mesh     ... 113s  cells=1582165, failed_checks=1, layer_coverage_pct={'body': 95.9, 'mirror': 91.3}
+  init     ... 73s  init=map, source=/home/riche3488/aero_project/ioniq5_cfd
+  solve    ... 1107s  
+  post     ... 10s  Cd=0.3169, CdA=0.8401

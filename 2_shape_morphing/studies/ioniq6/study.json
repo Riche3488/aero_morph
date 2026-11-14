@@ -1,0 +1,28 @@
+{
+  "base": {
+    "type": "stl",
+    "path": "gen3d/runs/ioniq6/ioniq6_rough.stl",
+    "name": "Hyundai IONIQ 6",
+    "units": "m",
+    "z_offset": -0.005,
+    "wheels": {
+      "front": {
+        "x": 0.85,
+        "y": 0.8175,
+        "z": 0.3525,
+        "r": 0.3525,
+        "width": 0.225
+      },
+      "rear": {
+        "x": 3.8,
+        "y": 0.822,
+        "z": 0.3525,
+        "r": 0.3525,
+        "width": 0.225
+      }
+    },
+    "split_wheels": true,
+    "reference_cd": 0.21,
+    "reference_cd_note": "Hyundai published Cd for IONIQ 6"
+  }
+}

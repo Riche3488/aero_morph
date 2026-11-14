@@ -1,0 +1,14 @@
+{
+  "state": "stopped after prepare",
+  "error": null,
+  "prepare": {
+    "frontal_area": 2.651424,
+    "patches": [
+      "body",
+      "wheelFront",
+      "wheelRear",
+      "mirror"
+    ],
+    "seconds": 2.8
+  }
+}

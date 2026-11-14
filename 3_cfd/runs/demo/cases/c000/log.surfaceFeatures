@@ -1,0 +1,202 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 12-86e126a7bc4d
+Exec   : surfaceFeatures
+Date   : Nov 14 2026
+Time   : 15:35:03
+Host   : "KWLeeWS"
+PID    : 91564
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/studies/demo/cases/c000
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/studies/demo/cases/c000/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+Reading "surfaceFeaturesDict"
+
+Surface            : "body.stl"
+
+
+Feature line extraction is only valid on closed manifold surfaces.
+Statistics:
+Triangles    : 121632
+Vertices     : 60818
+Bounding Box : (0 -0.94499999 0.16) (4.6350002 0.94499999 1.6049966)
+
+
+Constructing feature set from included angle 2.6179939
+Selecting edges purely based on geometric tests: no
+Removing all non-manifold edges (edges with > 2 connected faces) unless they cross multiple regions
+
+Initial feature set:
+    feature points : 488
+    feature edges  : 2609
+    of which
+        region edges   : 0
+        external edges : 1812
+        internal edges : 797
+
+
+Final feature set:
+points      : 2290
+edges       : 2609
+boundingBox : (0.37014899 -0.94499999 0.16043258) (4.520154 0.94499999 1.5807866)
+point classification :
+    convex feature points          :       91
+    concave feature points         :       16
+    mixed feature points           :      381
+    other (non-feature) points     :     1802
+edge classification :
+    external (convex angle) edges  :     1812
+    internal (concave angle) edges :      797
+    flat region edges              :        0
+    open edges                     :        0
+    multiply connected edges       :        0
+
+Writing extendedFeatureEdgeMesh to "constant/extendedFeatureEdgeMesh/body.extendedFeatureEdgeMesh"
+
+Writing featureEdgeMesh to "constant/geometry/body.eMesh"
+
+Surface            : "wheelFront.stl"
+
+
+Feature line extraction is only valid on closed manifold surfaces.
+Statistics:
+Triangles    : 7680
+Vertices     : 3842
+Bounding Box : (0.47444999 0.7015 -0.0049999999) (1.2155499 0.93650001 0.73610002)
+
+
+Constructing feature set from included angle 2.6179939
+Selecting edges purely based on geometric tests: no
+Removing all non-manifold edges (edges with > 2 connected faces) unless they cross multiple regions
+
+Initial feature set:
+    feature points : 0
+    feature edges  : 0
+    of which
+        region edges   : 0
+        external edges : 0
+        internal edges : 0
+
+
+Final feature set:
+points      : 0
+edges       : 0
+boundingBox : (0 0 0) (0 0 0)
+point classification :
+    convex feature points          :        0
+    concave feature points         :        0
+    mixed feature points           :        0
+    other (non-feature) points     :        0
+edge classification :
+    external (convex angle) edges  :        0
+    internal (concave angle) edges :        0
+    flat region edges              :        0
+    open edges                     :        0
+    multiply connected edges       :        0
+
+Writing extendedFeatureEdgeMesh to "constant/extendedFeatureEdgeMesh/wheelFront.extendedFeatureEdgeMesh"
+
+Writing featureEdgeMesh to "constant/geometry/wheelFront.eMesh"
+
+Surface            : "wheelRear.stl"
+
+
+Feature line extraction is only valid on closed manifold surfaces.
+Statistics:
+Triangles    : 7680
+Vertices     : 3842
+Bounding Box : (3.4744501 0.70599997 -0.0049999999) (4.2155499 0.94099998 0.73610002)
+
+
+Constructing feature set from included angle 2.6179939
+Selecting edges purely based on geometric tests: no
+Removing all non-manifold edges (edges with > 2 connected faces) unless they cross multiple regions
+
+Initial feature set:
+    feature points : 0
+    feature edges  : 0
+    of which
+        region edges   : 0
+        external edges : 0
+        internal edges : 0
+
+
+Final feature set:
+points      : 0
+edges       : 0
+boundingBox : (0 0 0) (0 0 0)
+point classification :
+    convex feature points          :        0
+    concave feature points         :        0
+    mixed feature points           :        0
+    other (non-feature) points     :        0
+edge classification :
+    external (convex angle) edges  :        0
+    internal (concave angle) edges :        0
+    flat region edges              :        0
+    open edges                     :        0
+    multiply connected edges       :        0
+
+Writing extendedFeatureEdgeMesh to "constant/extendedFeatureEdgeMesh/wheelRear.extendedFeatureEdgeMesh"
+
+Writing featureEdgeMesh to "constant/geometry/wheelRear.eMesh"
+
+Surface            : "mirror.stl"
+
+
+Feature line extraction is only valid on closed manifold surfaces.
+Statistics:
+Triangles    : 2208
+Vertices     : 1106
+Bounding Box : (1.335 0.83999997 1.003) (1.525 1.05 1.127)
+
+
+Constructing feature set from included angle 2.6179939
+Selecting edges purely based on geometric tests: no
+Removing all non-manifold edges (edges with > 2 connected faces) unless they cross multiple regions
+
+Initial feature set:
+    feature points : 0
+    feature edges  : 0
+    of which
+        region edges   : 0
+        external edges : 0
+        internal edges : 0
+
+
+Final feature set:
+points      : 0
+edges       : 0
+boundingBox : (0 0 0) (0 0 0)
+point classification :
+    convex feature points          :        0
+    concave feature points         :        0
+    mixed feature points           :        0
+    other (non-feature) points     :        0
+edge classification :
+    external (convex angle) edges  :        0
+    internal (concave angle) edges :        0
+    flat region edges              :        0
+    open edges                     :        0
+    multiply connected edges       :        0
+
+Writing extendedFeatureEdgeMesh to "constant/extendedFeatureEdgeMesh/mirror.extendedFeatureEdgeMesh"
+
+Writing featureEdgeMesh to "constant/geometry/mirror.eMesh"
+
+ExecutionTime = 0.100912 s  ClockTime = 0 s
+
+End
+

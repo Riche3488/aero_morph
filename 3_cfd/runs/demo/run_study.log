@@ -1,0 +1,14 @@
+
+=== [2/5]  elapsed 0.0 min
+[demo/c001] tail_taper=80mm
+  prepare  ... 3s  frontal_area=2.651, parts=['body', 'wheelFront', 'wheelRear', 'mirror']
+  mesh     ... 190s  cells=1575953, failed_checks=1, layer_coverage_pct={'body': 95.8, 'mirror': 91.3}
+  init     ... 80s  init=map, source=/home/riche3488/aero_project/ioniq5_cfd
+  solve    ... 1163s  
+  post     ... 9s  Cd=0.2999, CdA=0.795
+
+=== [3/5]  elapsed 24.1 min
+[demo/c002] roof_rear_drop=-20mm
+  prepare  ... 3s  frontal_area=2.66, parts=['body', 'wheelFront', 'wheelRear', 'mirror']
+  mesh     ... 107s  cells=1583718, failed_checks=1, layer_coverage_pct={'body': 95.9, 'mirror': 91.3}
+  init     ...

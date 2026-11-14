@@ -1,0 +1,26 @@
+{
+  "case": "c000",
+  "params": {
+    "ride_height": 0.0,
+    "hood_height": 0.0,
+    "front_corner": 0.0,
+    "windshield_rake": 0.0,
+    "roof_rear_drop": 0.0,
+    "spoiler_length": 0.0,
+    "tail_taper": 0.0,
+    "diffuser_angle": 0.0,
+    "mirror_scale": 1.0
+  },
+  "frontal_area": 2.651424,
+  "Cd": 0.3168514188266667,
+  "Cd_std": 0.005989893331441702,
+  "Cl": -0.19764833016,
+  "Cl_front": -0.031482495578,
+  "Cl_rear": -0.16616583453333333,
+  "CdA": 0.8401074563110759,
+  "drag_N": 390.2357236813991,
+  "lift_N": -243.42462924744328,
+  "iterations": 800,
+  "n_avg": 300,
+  "cells": 1582165
+}

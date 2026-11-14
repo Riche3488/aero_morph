@@ -1,0 +1,37 @@
+{
+  "state": "done",
+  "error": null,
+  "prepare": {
+    "frontal_area": 2.651264,
+    "parts": [
+      "body",
+      "wheelFront",
+      "wheelRear",
+      "mirror"
+    ],
+    "seconds": 2.9
+  },
+  "mesh": {
+    "cells": 1575953,
+    "failed_checks": 1,
+    "layer_coverage_pct": {
+      "body": 95.8,
+      "mirror": 91.3
+    },
+    "seconds": 189.7
+  },
+  "init": {
+    "init": "map",
+    "source": "/home/riche3488/aero_project/ioniq5_cfd",
+    "seconds": 79.5
+  },
+  "solve": {
+    "seconds": 1162.6
+  },
+  "post": {
+    "Cd": 0.29985608415000004,
+    "CdA": 0.7949976410878656,
+    "seconds": 9.3
+  },
+  "wall_seconds": 1443.9
+}

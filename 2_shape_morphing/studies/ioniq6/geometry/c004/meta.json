@@ -1,0 +1,122 @@
+{
+  "case": "c004",
+  "study": "ioniq6",
+  "label": "mode:ioniq6_rear_taper\u00d72",
+  "params": {
+    "ride_height": 0.0,
+    "hood_height": 0.0,
+    "front_corner": 0.0,
+    "windshield_rake": 0.0,
+    "roof_rear_drop": 0.0,
+    "spoiler_length": 0.0,
+    "tail_taper": 0.0,
+    "diffuser_angle": 0.0,
+    "mirror_scale": 1.0,
+    "mode:ioniq6_rear_taper": 2.0,
+    "mode:ioniq6_trunk_drop": 0.0
+  },
+  "vehicle": "Hyundai IONIQ 6",
+  "base": "gen3d/runs/ioniq6/ioniq6_rough.stl",
+  "units": "m",
+  "frontal_area": 2.333984,
+  "parts": {
+    "body": {
+      "triangles": 59908,
+      "volume_m3": 8.220392,
+      "regions": {
+        "body": 47474,
+        "wheelFront": 6378,
+        "wheelRear": 6056
+      }
+    }
+  },
+  "cfd_layout": "fused_regions",
+  "wheels": {
+    "front": {
+      "x": 0.85,
+      "y": 0.8175,
+      "z": 0.3475,
+      "r": 0.3525,
+      "width": 0.225
+    },
+    "rear": {
+      "x": 3.8,
+      "y": 0.822,
+      "z": 0.3475,
+      "r": 0.3525,
+      "width": 0.225
+    }
+  },
+  "bbox": [
+    [
+      0.0,
+      -0.94,
+      -0.005
+    ],
+    [
+      4.855,
+      0.94,
+      1.4902
+    ]
+  ],
+  "drag_modes": {
+    "ioniq6_rear_taper": 2.0
+  },
+  "qa": {
+    "body": {
+      "max_displacement": 0.07912526336349879,
+      "moved_vertices_pct": 9.347042328748833,
+      "min_detJ": 0.7084472980596543,
+      "flipped_triangles": 0,
+      "max_normal_rotation_deg": 89.99921021242045,
+      "area_ratio_min": 0.7169910475627684,
+      "area_ratio_max": 1.1423912137305543,
+      "handle_ratio_max": 0.16,
+      "status": "OK",
+      "max_wheel_displacement": 6.505879425031397e-07
+    }
+  },
+  "signature": {
+    "params": {
+      "ride_height": 0.0,
+      "hood_height": 0.0,
+      "front_corner": 0.0,
+      "windshield_rake": 0.0,
+      "roof_rear_drop": 0.0,
+      "spoiler_length": 0.0,
+      "tail_taper": 0.0,
+      "diffuser_angle": 0.0,
+      "mirror_scale": 1.0,
+      "mode:ioniq6_rear_taper": 2.0,
+      "mode:ioniq6_trunk_drop": 0.0
+    },
+    "res": 0.5,
+    "modes_hash": "40137df67650",
+    "base": {
+      "type": "stl",
+      "path": "gen3d/runs/ioniq6/ioniq6_rough.stl",
+      "name": "Hyundai IONIQ 6",
+      "units": "m",
+      "z_offset": -0.005,
+      "wheels": {
+        "front": {
+          "x": 0.85,
+          "y": 0.8175,
+          "z": 0.3525,
+          "r": 0.3525,
+          "width": 0.225
+        },
+        "rear": {
+          "x": 3.8,
+          "y": 0.822,
+          "z": 0.3525,
+          "r": 0.3525,
+          "width": 0.225
+        }
+      },
+      "split_wheels": true
+    },
+    "base_mtime": 1794641359.4621325
+  },
+  "status": "ok"
+}
