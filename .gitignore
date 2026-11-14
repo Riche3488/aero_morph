@@ -1,0 +1,18 @@
+# --- general ---
+__pycache__/
+*.pyc
+.claude/scheduled_tasks.lock
+
+# --- gen3d (photo -> 3D car pipeline) ---
+gen3d/.venv/
+gen3d/TRELLIS/                 # upstream clone (see gen3d/README.md "Setup")
+gen3d/inputs/                  # first-session scratch inputs
+# first-session outputs: keep only the raw mesh imported by vehicles/ioniq5.yaml
+gen3d/output/*
+!gen3d/output/ioniq5_final_raw.ply
+# pipeline runs: keep reports / attribution / final + rough meshes / previews only
+gen3d/runs/_search/
+gen3d/runs/*/candidates/
+gen3d/runs/*/inputs/
+gen3d/runs/*/*.obj
+gen3d/runs/*/*_inspect.png
