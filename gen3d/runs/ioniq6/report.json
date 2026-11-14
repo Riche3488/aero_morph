@@ -1,0 +1,251 @@
+{
+  "id": "ioniq6",
+  "name": "Hyundai IONIQ 6",
+  "config": "/home/riche3488/aero_project/gen3d/vehicles/ioniq6.yaml",
+  "spec_mm": {
+    "length": 4855,
+    "width": 1880,
+    "height": 1495,
+    "wheelbase": 2950,
+    "front_overhang": 850,
+    "track_front": 1635,
+    "track_rear": 1644,
+    "tire_diameter": 705,
+    "tire_width": 225,
+    "ground_clearance": 141,
+    "rear_overhang": 1055
+  },
+  "images": {
+    "fl": {
+      "title": "File:Hyundai Ioniq 6 1X7A7258.jpg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Alexander-93",
+      "width": 5123,
+      "height": 2760,
+      "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Hyundai_Ioniq_6_1X7A7258.jpg/1920px-Hyundai_Ioniq_6_1X7A7258.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "page": "https://commons.wikimedia.org/wiki/File:Hyundai_Ioniq_6_1X7A7258.jpg",
+      "view": "front-left 3/4"
+    },
+    "rl": {
+      "title": "File:Hyundai Ioniq 6 1X7A7260.jpg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Alexander-93",
+      "width": 6093,
+      "height": 3564,
+      "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Hyundai_Ioniq_6_1X7A7260.jpg/1920px-Hyundai_Ioniq_6_1X7A7260.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "page": "https://commons.wikimedia.org/wiki/File:Hyundai_Ioniq_6_1X7A7260.jpg",
+      "view": "rear-left 3/4"
+    }
+  },
+  "timing_s": {
+    "fetch": 8.7,
+    "generate": 156.4,
+    "select": 0.8,
+    "repair": 56.7,
+    "render": 12.6
+  },
+  "candidates": [
+    {
+      "components": 7,
+      "sliver_faces_removed": 0,
+      "faces": 300000,
+      "extents_mm": [
+        4855,
+        1901,
+        1519
+      ],
+      "wheels": {
+        "FL": 1532,
+        "FR": 1375,
+        "RL": 1814,
+        "RR": 1632
+      },
+      "wheel_ratio": 0.758,
+      "mirror_error_mm": 18.24,
+      "score": 0.393,
+      "tag": "fl+rl_s1",
+      "images": [
+        "fl",
+        "rl"
+      ],
+      "seed": 1,
+      "mode": "stochastic"
+    },
+    {
+      "components": 4,
+      "sliver_faces_removed": 0,
+      "faces": 300000,
+      "extents_mm": [
+        4855,
+        1935,
+        1510
+      ],
+      "wheels": {
+        "FL": 1587,
+        "FR": 1568,
+        "RL": 1771,
+        "RR": 1787
+      },
+      "wheel_ratio": 0.877,
+      "mirror_error_mm": 15.76,
+      "score": 0.562,
+      "tag": "fl+rl_s2",
+      "images": [
+        "fl",
+        "rl"
+      ],
+      "seed": 2,
+      "mode": "stochastic"
+    },
+    {
+      "components": 4,
+      "sliver_faces_removed": 0,
+      "faces": 300000,
+      "extents_mm": [
+        4855,
+        1965,
+        1550
+      ],
+      "wheels": {
+        "FL": 1597,
+        "FR": 1661,
+        "RL": 1692,
+        "RR": 1669
+      },
+      "wheel_ratio": 0.944,
+      "mirror_error_mm": 17.86,
+      "score": 0.587,
+      "tag": "fl+rl_s3",
+      "images": [
+        "fl",
+        "rl"
+      ],
+      "seed": 3,
+      "mode": "stochastic"
+    },
+    {
+      "components": 5,
+      "sliver_faces_removed": 24,
+      "faces": 300000,
+      "extents_mm": [
+        4855,
+        1936,
+        1503
+      ],
+      "wheels": {
+        "FL": 1535,
+        "FR": 1549,
+        "RL": 1737,
+        "RR": 1845
+      },
+      "wheel_ratio": 0.832,
+      "mirror_error_mm": 16.12,
+      "score": 0.51,
+      "tag": "fl_s1",
+      "images": [
+        "fl"
+      ],
+      "seed": 1,
+      "mode": "stochastic"
+    },
+    {
+      "components": 1,
+      "sliver_faces_removed": 0,
+      "faces": 300000,
+      "extents_mm": [
+        4855,
+        1898,
+        1501
+      ],
+      "wheels": {
+        "FL": 1421,
+        "FR": 1396,
+        "RL": 1344,
+        "RR": 1351
+      },
+      "wheel_ratio": 0.946,
+      "mirror_error_mm": 14.91,
+      "score": 0.648,
+      "tag": "fl_s2",
+      "images": [
+        "fl"
+      ],
+      "seed": 2,
+      "mode": "stochastic"
+    },
+    {
+      "components": 5,
+      "sliver_faces_removed": 965,
+      "faces": 300000,
+      "extents_mm": [
+        4855,
+        1946,
+        1502
+      ],
+      "wheels": {
+        "FL": 1402,
+        "FR": 1480,
+        "RL": 1498,
+        "RR": 1959
+      },
+      "wheel_ratio": 0.716,
+      "mirror_error_mm": 15.84,
+      "score": 0.399,
+      "tag": "fl_s3",
+      "images": [
+        "fl"
+      ],
+      "seed": 3,
+      "mode": "stochastic"
+    }
+  ],
+  "selected": "fl+rl_s2",
+  "repair": {
+    "rough": {
+      "symmetry": {
+        "yaw_deg": -0.07314816732206346,
+        "roll_deg": -0.00842289827672717,
+        "dy_mm": -3.5234139776484783,
+        "mirror_error_before_mm": 10.342753812724316,
+        "mirror_error_after_mm": 9.764720284655088
+      },
+      "tyre_contact_x_m": [
+        0.9705,
+        3.8571
+      ],
+      "closing_radius_mm": 48,
+      "sdf_asymmetry_mm": 3.268456319347024,
+      "mc_pymeshfix": false,
+      "decimation_attempts": 1,
+      "axle_warp": {
+        "front_overhang_scale": 0.7760676191003645,
+        "wheelbase_scale": 1.0318118455097436,
+        "rear_overhang_scale": 1.0807906202279303
+      },
+      "final_fit": {
+        "width_scale": 0.9893342215827349,
+        "height_scale": 0.9748058328262019
+      },
+      "extents_mm": [
+        4855,
+        1880,
+        1495
+      ],
+      "faces": 59908,
+      "watertight": true,
+      "winding_consistent": true,
+      "volume_m3": 8.238,
+      "mirror_deviation_max_mm": 0.0,
+      "mirror_deviation_p99_mm": 0.0,
+      "seconds": 56.6,
+      "params": {
+        "voxel": 0.012,
+        "smooth": 1.5,
+        "open": 2,
+        "taubin": 30,
+        "faces": 60000,
+        "flat_floor": true
+      }
+    }
+  }
+}

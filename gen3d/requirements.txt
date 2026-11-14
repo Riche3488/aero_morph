@@ -1,0 +1,31 @@
+# gen3d / car3d – tested on RTX 5070 Ti (sm_120), CUDA 12.8 wheels, Python 3.10, WSL2
+# install torch / torchvision / xformers from the PyTorch cu128 index first:
+#   pip install torch==2.7.1 torchvision==0.22.1 xformers==0.0.31.post1 --index-url https://download.pytorch.org/whl/cu128
+spconv-cu126==2.3.8
+numpy==1.26.4
+scipy==1.15.3
+trimesh==5.2.1
+fast_simplification==0.2.0
+open3d==0.20.0
+scikit-image==0.25.2
+pymeshfix==0.18.1
+libigl==2.6.3
+shapely==2.1.2
+rembg[gpu]==2.0.69
+onnxruntime-gpu==1.23.2
+transformers==4.49.0
+huggingface_hub==0.36.2
+safetensors==0.8.0
+pillow==12.3.0
+opencv-python-headless==4.11.0.86
+PyYAML==6.0.3
+matplotlib==3.10.9
+easydict==1.14
+ImageIO==2.38.0
+imageio-ffmpeg
+xatlas==0.0.11
+pyvista==0.49.2
+igraph==1.0.0
+tqdm==4.70.1
+ninja==1.13.2
+utils3d @ git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8

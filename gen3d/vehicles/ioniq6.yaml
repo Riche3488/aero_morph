@@ -1,0 +1,30 @@
+# Hyundai IONIQ 6 (2022-, standard body) – pipeline generality test (sedan)
+# Dimensions: 4855 / 1880 / 1495, wheelbase 2950 (carsguide, autotijd); front overhang ~850 and
+# track ~1635/1644 (auto-data, evkx); ground clearance 141 (carexpert). Verify for your trim.
+id: ioniq6
+name: Hyundai IONIQ 6
+
+spec:
+  length: 4855
+  width: 1880
+  height: 1495
+  wheelbase: 2950
+  front_overhang: 850
+  track_front: 1635
+  track_rear: 1644
+  tire: 225/55R18
+  ground_clearance: 141
+
+images:                   # same silver car, same photographer / session (Alexander-93)
+  fl: {wikimedia: "File:Hyundai Ioniq 6 1X7A7258.jpg", view: front-left 3/4}
+  rl: {wikimedia: "File:Hyundai Ioniq 6 1X7A7260.jpg", view: rear-left 3/4}
+
+generation:
+  image_sets: [[fl], [fl, rl]]
+  seeds: [1, 2, 3]
+  mode: stochastic
+  select: fl+rl_s2        # manual pick after reviewing candidates_sheet.png (rear spoiler captured;
+                          # auto score preferred fl_s2, a single-photo candidate)
+
+repair:
+  presets: [rough]

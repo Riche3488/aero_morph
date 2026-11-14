@@ -1,0 +1,32 @@
+# Hyundai IONIQ 5 (2021-)
+# The delivered model (gen3d/output/ioniq5_rough.*) came from photos fl+rr, seed 1, stochastic.
+# TRELLIS sampling is NOT bit-reproducible across runs (non-deterministic sparse GPU kernels), so
+# that original raw mesh is imported as a candidate; new seeds are generated next to it and the
+# automatic selection picks the best.
+id: ioniq5
+name: Hyundai IONIQ 5
+
+spec:                     # public dimensions, mm  (same basis as ../ioniq5_geometry.py)
+  length: 4635
+  width: 1890             # body, without mirrors
+  height: 1605
+  wheelbase: 3000
+  front_overhang: 845
+  track_front: 1638
+  track_rear: 1647
+  tire: 235/55R19         # -> tire_diameter / tire_width (or give them in mm)
+  ground_clearance: 160
+
+images:                   # wikimedia: Commons file title | path: local file (relative to this yaml)
+  fl: {wikimedia: "File:Hyundai Ioniq 5 1X7A0847.jpg", view: front-left 3/4}
+  rr: {wikimedia: "File:Hyundai Ioniq 5 rear.jpg", view: rear-right 3/4}
+
+generation:
+  image_sets: [[fl, rr]]  # each set = one TRELLIS run (multi-image if >1 photo)
+  seeds: [1, 2, 3]
+  mode: stochastic        # stochastic | multidiffusion
+  import:                 # previously generated raw meshes, added as candidates
+    orig_fl+rr_s1: ../output/ioniq5_final_raw.ply
+
+repair:
+  presets: [rough]        # rough (12 mm voxels, ~60k faces) | fine (6 mm, ~400k faces)

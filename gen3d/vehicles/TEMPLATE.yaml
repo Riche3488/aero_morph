@@ -1,0 +1,33 @@
+# Copy to vehicles/<id>.yaml and fill in.  Run:  .venv/bin/python pipeline.py run vehicles/<id>.yaml
+id: my_car                # output folder runs/<id>/ and file prefix
+name: Maker Model (year)
+
+spec:                     # published dimensions in mm (manufacturer spec sheet)
+  length: 4600
+  width: 1880             # body width WITHOUT mirrors
+  height: 1600            # roof height (antenna fin is ignored via 99.95 percentile)
+  wheelbase: 2900
+  front_overhang: 880     # bumper tip -> front axle; rear overhang = length - front_overhang - wheelbase
+  track_front: 1630       # or a single 'track:'
+  track_rear: 1640
+  tire: 235/55R19         # or tire_diameter / tire_width in mm
+  ground_clearance: 160   # also the height of the flat underbody
+
+images:                   # 1-4 photos of the SAME car (colour / trim / wheels) – find them with
+                          #   .venv/bin/python pipeline.py search "Maker Model"
+  fl: {wikimedia: "File:....jpg", view: front-left 3/4}
+  rr: {wikimedia: "File:....jpg", view: rear-right 3/4}
+  # own photo: side: {path: photos/side.jpg, license: own, artist: me, view: left side}
+
+generation:
+  # Candidates = every image set x every seed; the best one is picked automatically
+  # (all four wheels present + left/right consistency). Inspect runs/<id>/candidates_sheet.png.
+  image_sets: [[fl], [fl, rr]]
+  seeds: [1, 2, 3]
+  mode: stochastic        # stochastic | multidiffusion
+  orientation: auto       # auto: lower end = front.  'flip' if the preview shows it backwards
+  # select: fl+rr_s2      # force a candidate instead of the automatic choice
+
+repair:
+  presets: [rough]        # rough | fine | [rough, fine]
+  # rough: {voxel: 0.015, faces: 40000}   # per-preset overrides

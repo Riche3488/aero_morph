@@ -5,8 +5,10 @@ __pycache__/
 
 # --- gen3d (photo -> 3D car pipeline) ---
 gen3d/.venv/
-gen3d/TRELLIS/                 # upstream clone (see gen3d/README.md "Setup")
-gen3d/inputs/                  # first-session scratch inputs
+# upstream TRELLIS clone (see gen3d/README.md "Setup")
+gen3d/TRELLIS/
+# first-session scratch inputs
+gen3d/inputs/
 # first-session outputs: keep only the raw mesh imported by vehicles/ioniq5.yaml
 gen3d/output/*
 !gen3d/output/ioniq5_final_raw.ply
