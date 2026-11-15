@@ -34,9 +34,38 @@ def load_dat(path):
     return np.array(rows)
 
 
+def newest_per_folder(pattern):
+    """Matches of pattern (.../<startTime>/<name>.<ext>), one per <startTime> folder, oldest folder
+    first. A run that restarts into an existing folder makes OpenFOAM write <name>_<startTime>.<ext>
+    next to the old file; per folder the most recently written variant is the valid one."""
+    stem, ext = os.path.splitext(pattern)
+    best = {}
+    for f in glob.glob(pattern) + glob.glob(f"{stem}_*{ext}"):
+        d = os.path.dirname(f)
+        if d not in best or os.path.getmtime(f) > os.path.getmtime(best[d]):
+            best[d] = f
+    return [best[d] for d in sorted(best, key=lambda d: float(os.path.basename(d)))]
+
+
 def latest(pattern):
-    c = glob.glob(pattern)
-    return max(c, key=lambda p: float(p.split(os.sep)[-2])) if c else None
+    c = newest_per_folder(pattern)
+    return c[-1] if c else None
+
+
+def segments(pattern):
+    """Restart segments of a function-object output (postProcessing/<fo>/<startTime>/<file>), oldest first.
+    The solver runs in two stages (run_case.py), so stage B continues in a new <startTime> folder."""
+    return newest_per_folder(pattern)
+
+
+def stack_segments(arrays):
+    """Concatenate time series; a later segment replaces the iterations it overlaps."""
+    out = None
+    for d in arrays:
+        if d is None or not len(d):
+            continue
+        out = d if out is None else np.vstack([out[out[:, 0] < d[0, 0]], d])
+    return out
 
 
 def read_vtk(path):
@@ -82,7 +111,7 @@ def fan_tris(polys):
 
 
 # ---------------------------------------------------------------- forces
-fc = load_dat(f"{PP}/forceCoeffsIncompressible/0/forceCoeffs.dat")
+fc = stack_segments(load_dat(f) for f in segments(f"{PP}/forceCoeffsIncompressible/*/forceCoeffs.dat"))
 it, Cm, Cd, Cl, Clf, Clr = fc.T[:6]
 sel = it > it.max() - N_AVG
 q = 0.5 * RHO * U_INF ** 2
@@ -97,8 +126,8 @@ summary = {
     "Lift force full car [N]": cl * q * A_FULL,
     "Aero drag power @100km/h [kW]": cd * q * A_FULL * U_INF / 1e3,
 }
-yp = f"{PP}/yPlus/0/yPlus.dat"
-if os.path.exists(yp):
+yp = latest(f"{PP}/yPlus/*/yPlus.dat")
+if yp:
     for line in open(yp):
         if line.startswith("#"):
             continue
@@ -125,11 +154,10 @@ ax[0].plot(it, Clf, lw=0.8, label="Cl front"); ax[0].plot(it, Clr, lw=0.8, label
 ax[0].axvspan(it.max() - N_AVG, it.max(), color="0.9")
 ax[0].set_ylim(-0.6, 1.0); ax[0].set_xlabel("iteration"); ax[0].grid(alpha=.3); ax[0].legend()
 ax[0].set_title(f"Force coefficients (avg: Cd={cd:.3f}, Cl={cl:.3f})")
-rf = glob.glob(f"{PP}/residuals*/0/residuals.dat")[0]
-names = [l for l in open(rf) if l.startswith("# Time")][0].split()[2:]
-rows = [l.split() for l in open(rf) if not l.startswith("#")]
-rows = [r for r in rows if "N/A" not in r]
-R = np.array(rows, float)
+rfs = segments(f"{PP}/residuals*/*/residuals.dat")
+names = [l for l in open(rfs[-1]) if l.startswith("# Time")][0].split()[2:]
+R = stack_segments(np.array([r for r in (l.split() for l in open(rf) if not l.startswith("#")) if "N/A" not in r]
+                            or np.zeros((0, len(names) + 1)), float) for rf in rfs)
 for j, n in enumerate(names):
     ax[1].semilogy(R[:, 0], R[:, j + 1], label=n)
 ax[1].set_title("Initial residuals"); ax[1].set_xlabel("iteration"); ax[1].grid(alpha=.3); ax[1].legend()

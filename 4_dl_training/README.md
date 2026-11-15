@@ -3,8 +3,8 @@
 ## Inputs (already produced by stages 2–3)
 | source | content | use |
 |---|---|---|
-| `3_cfd/runs/<study>/results.csv` | design variables (`tail_taper`, …, `mode:<name>`) → Cd, CdA, Cl, Cl_front/rear | tabular surrogate |
-| `2_shape_morphing/studies/<study>/geometry/<case>/body.stl` + `meta.json` | morphed surface (same topology across parametric designs) | geometry-based models |
+| `3_cfd/runs/<study>/results.csv` | design variables as run (`tail_taper`, …, `mode:<name>`; a missing mode column = 0) → Cd, CdA, Cl, Cl_front/rear | tabular surrogate |
+| `3_cfd/runs/<study>/cases/<case>/case.json` + `constant/geometry/*.stl` | variables with baseline/bounds/unit; the surface that was simulated | geometry-based models |
 | `3_cfd/runs/<study>/cases/<case>/postProcessing/car/<t>/patch.vtk` | surface p (and wall shear stress) | field prediction |
 | `…/postProcessing/{yNormal,zNormal,xWake}/<t>/cutPlane.vtk` | p, U on cut planes | wake / flow-field models |
 

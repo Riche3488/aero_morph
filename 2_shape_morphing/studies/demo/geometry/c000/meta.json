@@ -15,6 +15,77 @@
     "mode:front_bumper_push": 0.0,
     "mode:rear_roof_drop": 0.0
   },
+  "variables": {
+    "ride_height": {
+      "baseline": 0.0,
+      "lower": -25.0,
+      "upper": 30.0,
+      "unit": "mm"
+    },
+    "hood_height": {
+      "baseline": 0.0,
+      "lower": -40.0,
+      "upper": 40.0,
+      "unit": "mm"
+    },
+    "front_corner": {
+      "baseline": 0.0,
+      "lower": -20.0,
+      "upper": 80.0,
+      "unit": "mm"
+    },
+    "windshield_rake": {
+      "baseline": 0.0,
+      "lower": -100.0,
+      "upper": 100.0,
+      "unit": "mm"
+    },
+    "roof_rear_drop": {
+      "baseline": 0.0,
+      "lower": -20.0,
+      "upper": 60.0,
+      "unit": "mm"
+    },
+    "spoiler_length": {
+      "baseline": 0.0,
+      "lower": -60.0,
+      "upper": 60.0,
+      "unit": "mm"
+    },
+    "tail_taper": {
+      "baseline": 0.0,
+      "lower": 0.0,
+      "upper": 80.0,
+      "unit": "mm"
+    },
+    "diffuser_angle": {
+      "baseline": 0.0,
+      "lower": -2.0,
+      "upper": 6.0,
+      "unit": "deg"
+    },
+    "mirror_scale": {
+      "baseline": 1.0,
+      "lower": 0.0,
+      "upper": 1.2,
+      "unit": "-"
+    },
+    "mode:front_bumper_push": {
+      "baseline": 0.0,
+      "lower": -2.0,
+      "upper": 2.0,
+      "unit": "amp"
+    },
+    "mode:rear_roof_drop": {
+      "baseline": 0.0,
+      "lower": -2.0,
+      "upper": 2.0,
+      "unit": "amp"
+    }
+  },
+  "vehicle": "IONIQ 5",
+  "base": "ioniq5_parametric",
+  "reference_cd": 0.288,
   "units": "m",
   "frontal_area": 2.651424,
   "parts": {
@@ -47,6 +118,23 @@
       "volume_m3": 0.002572
     }
   },
+  "cfd_layout": "separate_parts",
+  "wheels": {
+    "front": {
+      "x": 0.845,
+      "y": 0.819,
+      "z": 0.36554999999999993,
+      "r": 0.36554999999999993,
+      "width": 0.235
+    },
+    "rear": {
+      "x": 3.845,
+      "y": 0.8235,
+      "z": 0.36554999999999993,
+      "r": 0.36554999999999993,
+      "width": 0.235
+    }
+  },
   "bbox": [
     [
       0.0,
@@ -60,6 +148,7 @@
     ]
   ],
   "drag_modes": {},
+  "dims_mm": {},
   "qa": {},
   "signature": {
     "params": {
@@ -76,7 +165,12 @@
       "mode:rear_roof_drop": 0.0
     },
     "res": 0.5,
-    "modes_hash": "da39a3ee5e6b"
+    "modes_hash": "da39a3ee5e6b",
+    "base": {
+      "type": "ioniq5_parametric"
+    },
+    "code_hash": "e489815d629e",
+    "generator_hash": "44f67978cba9"
   },
   "status": "ok"
 }

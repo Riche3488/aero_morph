@@ -7,8 +7,14 @@ Run one design of a study through the full CFD chain (resumable):
   python3 3_cfd/run_case.py <study> <case> [--np 8] [--iters N] [--init map|potential]
                             [--map-from CASE_DIR] [--stop-after STAGE] [--clean]
 
-Geometry comes from stage 2 (2_shape_morphing/studies/<study>/geometry/<case>/,
-exported on demand), so parametric and drag-morph designs are handled the same way.
+Input = the stage-2 hand-off folder only: 2_shape_morphing/studies/<study>/geometry/
+  index.json          cases to run (written by export_designs.py / preview_designs.py)
+  <case>/meta.json    design variables, label, frontal area, wheels, CFD layout
+  <case>/*.stl        surfaces (m)
+Stage 3 imports no stage-1/2 code and never regenerates geometry: export it first with
+  python3 2_shape_morphing/export_designs.py <study>
+The STLs are copied into the case (constant/geometry) and their hash is stored in case.json;
+if the hand-off geometry changes later, the case is reported as changed (--rerun-changed).
 
 Each finished stage leaves a marker file (.done_<stage>) in the case directory,
 so a crashed/interrupted run continues where it stopped. Use --redo STAGE to
@@ -16,21 +22,17 @@ force a stage (and everything after it) to run again.
 """
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
-import time
-
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pipeline_config as cfg  # noqa: E402
-
-cfg.add_stage_paths()
-from design_table import geometry_dir, is_parametric, label, read_designs, study_config  # noqa: E402
-from export_designs import export_case  # noqa: E402
 
 FOAM_BASHRC, TEMPLATE, BASELINE_CASE = cfg.FOAM_BASHRC, cfg.CFD_TEMPLATE, cfg.CFD_BASELINE
 STAGES = ["prepare", "mesh", "init", "solve", "post"]
@@ -40,6 +42,116 @@ STL_PARTS = {"body": "body", "wheel_FL": "wheelFront", "wheel_RL": "wheelRear", 
 
 def case_dir(study, case):
     return os.path.join(cfg.CFD_RUNS, study, "cases", case)
+
+
+# ----------------------------------------------------------------------------- stage-2 hand-off
+def _export_hint(study):
+    return f"export it first: python3 2_shape_morphing/export_designs.py {study}"
+
+
+def study_cases(study):
+    """Cases of the hand-off folder: index.json (written by stage 2) or, for older exports
+    without an index, every <case>/meta.json with status ok. -> [{"case", "label"}]"""
+    root = cfg.geometry_root(study)
+    idx = os.path.join(root, "index.json")
+    if os.path.exists(idx):
+        return json.load(open(idx))["cases"]
+    out = []
+    for c in sorted(os.listdir(root)) if os.path.isdir(root) else []:
+        mp = os.path.join(root, c, "meta.json")
+        if not c.startswith("_") and os.path.exists(mp):
+            m = json.load(open(mp))
+            if m.get("status") == "ok":
+                out.append({"case": c, "label": m.get("label", c)})
+    return out
+
+
+def load_meta(study, case):
+    mp = os.path.join(cfg.geometry_dir(study, case), "meta.json")
+    if not os.path.exists(mp):
+        raise SystemExit(f"no exported geometry for {study}/{case} ({mp}); {_export_hint(study)}")
+    meta = json.load(open(mp))
+    if meta.get("status") != "ok":
+        raise SystemExit(f"geometry export of {study}/{case} is not ok; {_export_hint(study)}")
+    return meta
+
+
+def geometry_files(study, case, meta):
+    """[(file name in constant/geometry, source STL)] of the hand-off geometry, in patch order."""
+    src = cfg.geometry_dir(study, case)
+    if meta.get("cfd_layout", "separate_parts") == "fused_regions":
+        files = [("body.stl", os.path.join(src, "body.stl"))]
+    else:
+        files = [(patch + ".stl", os.path.join(src, part + ".stl")) for part, patch in STL_PARTS.items()]
+    return [(n, f) for n, f in files if os.path.exists(f)]
+
+
+def _update_stl(h, path, chunk=1 << 22):
+    """Feed the STL bytes that define the surface to h, streamed (fused ASCII STLs are hundreds
+    of MB): a binary STL's 80-byte header (solid name only) is skipped, ASCII STLs are taken whole
+    (their solid names are the patch regions)."""
+    size = os.path.getsize(path)
+    with open(path, "rb") as f:
+        head = f.read(84)
+        n = int.from_bytes(head[80:84], "little") if len(head) >= 84 else -1
+        h.update(head[80:] if size == 84 + 50 * n else head)
+        for b in iter(lambda: f.read(chunk), b""):
+            h.update(b)
+
+
+_HASH_MEMO = {}
+HASH_CACHE = os.path.join(cfg.CFD_RUNS, ".geometry_hash_cache.json")
+
+
+def _hash(named_paths):
+    """Geometry hash of [(name, path)] (same value as always: sha1 over name + surface bytes).
+    Memoised per process and cached on disk by (path, size, mtime): a study run checks every
+    case's geometry several times (run_study, run_case, compare), and re-reading hundreds of MB
+    per check would dominate."""
+    key = json.dumps([(n, os.path.abspath(p), os.path.getsize(p), os.stat(p).st_mtime_ns) for n, p in named_paths])
+    if key in _HASH_MEMO:
+        return _HASH_MEMO[key]
+    try:
+        disk = json.load(open(HASH_CACHE))
+    except (OSError, ValueError):
+        disk = {}
+    if key not in disk:
+        h = hashlib.sha1()
+        for name, path in named_paths:
+            h.update(name.encode()); _update_stl(h, path)
+        disk = {k: v for k, v in disk.items()                           # drop entries of rewritten / deleted files
+                if all(os.path.exists(p) and os.path.getsize(p) == sz and os.stat(p).st_mtime_ns == mt
+                       for _, p, sz, mt in json.loads(k))}
+        disk[key] = h.hexdigest()[:16]
+        try:                                                            # atomic: parallel runs may race
+            os.makedirs(os.path.dirname(HASH_CACHE), exist_ok=True)
+            tmp = f"{HASH_CACHE}.{os.getpid()}"
+            json.dump(disk, open(tmp, "w"))
+            os.replace(tmp, HASH_CACHE)
+        except OSError:
+            pass
+    _HASH_MEMO[key] = disk[key]
+    return disk[key]
+
+
+def geometry_changed(study, case):
+    """True if the hand-off geometry differs from the geometry the CFD case was built from,
+    None if that cannot be told (case not prepared, or its geometry copy is gone)."""
+    cdir = case_dir(study, case)
+    cj = os.path.join(cdir, "case.json")
+    mp = os.path.join(cfg.geometry_dir(study, case), "meta.json")
+    if not (os.path.exists(cj) and os.path.exists(mp)):
+        return None
+    files = geometry_files(study, case, json.load(open(mp)))
+    if not files:
+        return None
+    used = json.load(open(cj)).get("geometry_hash")
+    if used is None:                                   # older cases: compare with their own copy
+        copies = [(n, os.path.join(cdir, "constant", "geometry", n)) for n, _ in files]
+        if not all(os.path.exists(p) for _, p in copies):
+            return None
+        used = _hash(copies)
+    return used != _hash(files)
 
 
 # ----------------------------------------------------------------------------- helpers
@@ -92,18 +204,19 @@ def stage_prepare(cdir, case, params, opt):
                 shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
     shutil.copytree(TEMPLATE, cdir, dirs_exist_ok=True)
 
-    meta = export_case(opt.study, case, params, quiet=True)      # stage-2 geometry (cached)
-    src = geometry_dir(opt.study, case)
+    meta = load_meta(opt.study, case)                            # stage-2 hand-off (read only)
+    src = cfg.geometry_dir(opt.study, case)
     area = meta["frontal_area"]
     gdir = os.path.join(cdir, "constant", "geometry")
     os.makedirs(gdir, exist_ok=True)
-    names = []
+    files = geometry_files(opt.study, case, meta)
+    for n, f in files:                                           # the case keeps its own copy
+        shutil.copy(f, os.path.join(gdir, n))
+    names = [n[:-4] for n, _ in files]
     layout = meta.get("cfd_layout", "separate_parts")
     wall = "patchInfo { type wall; }"
     if layout == "fused_regions":
         # one closed STL whose solids body / wheelFront / wheelRear become separate patches
-        shutil.copy(os.path.join(src, "body.stl"), os.path.join(gdir, "body.stl"))
-        names = ["body"]
         regs = [r for r in ("wheelFront", "wheelRear") if meta["parts"]["body"].get("regions", {}).get(r)]
         g = ('    body { type triSurfaceMesh; file "body.stl";\n           regions { body { name body; } '
              + " ".join(f"{r} {{ name {r}; }}" for r in regs) + " } }")
@@ -111,11 +224,6 @@ def stage_prepare(cdir, case, params, opt):
                  + " ".join(f"{r} {{ level (4 5); {wall} }}" for r in regs) + " } }")
         patches = ["body"] + regs
     else:
-        for part, patch in STL_PARTS.items():
-            f = os.path.join(src, part + ".stl")
-            if os.path.exists(f):
-                shutil.copy(f, os.path.join(gdir, patch + ".stl"))
-                names.append(patch)
         g = "\n".join(f'    {n:10s} {{ type triSurfaceMesh; file "{n}.stl"; }}' for n in names)
         lv = {"body": "(5 5)", "mirror": "(5 6)"}
         surfs = "\n".join(f"        {n:10s} {{ level {lv.get(n, '(4 5)')}; {wall} }}" for n in names)
@@ -138,11 +246,12 @@ def stage_prepare(cdir, case, params, opt):
     edit(os.path.join(cdir, "system", "decomposeParDict"),
          lambda t: re.sub(r"numberOfSubdomains\s+\d+;", f"numberOfSubdomains  {opt.np};", t))
 
-    base = study_config(opt.study)["base"]
-    json.dump({"case": case, "study": opt.study, "label": label(params), "params": params, "frontal_area": area,
-               "geometry_source": src, "vehicle": meta.get("vehicle", "IONIQ 5"), "cfd_layout": layout,
-               "patches": patches, "wheels": w,
-               "reference_cd": base.get("reference_cd", 0.288 if base["type"] == "ioniq5_parametric" else None),
+    ref_cd = meta.get("reference_cd", 0.288 if meta.get("base") == cfg.IONIQ5_PARAMETRIC else None)
+    json.dump({"case": case, "study": opt.study, "label": meta["label"], "params": params,
+               "variables": meta.get("variables", {}), "frontal_area": area,
+               "geometry_source": cfg.rel(src), "geometry_hash": _hash(files), "base": meta.get("base"),
+               "vehicle": meta.get("vehicle", "IONIQ 5"), "cfd_layout": layout,
+               "patches": patches, "wheels": w, "reference_cd": ref_cd,
                "n_iter": opt.iters, "n_avg": opt.n_avg, "init": opt.init},
               open(os.path.join(cdir, "case.json"), "w"), indent=2)
     return {"frontal_area": area, "patches": patches}
@@ -208,18 +317,24 @@ def stage_solve(cdir, opt):
     foam_set(cdir, "relaxationFactors/fields/p", 0.2, fv)
     foam_set(cdir, "relaxationFactors/equations/U", 0.5, fv)
     foam_set(cdir, "relaxationFactors/equations/\"(k|omega|epsilon)\"", 0.5, fv)
+    n_a = max(1, min(n_a, opt.iters // 2))
     foam_set(cdir, "endTime", n_a, cd)
-    foam_set(cdir, "writeInterval", opt.iters, cd)
+    foam_set(cdir, "writeInterval", n_a, cd)        # stage A must be written: stage B restarts from it
     foam_set(cdir, "purgeWrite", 1, cd)
+    _clear_fo_output(cdir, _latest_time(cdir))
     sh(f"{mpi} foamRun -parallel", cdir, "log.foamRun.stageA")
+    if not glob.glob(os.path.join(cdir, "processor0", str(n_a))):
+        raise RuntimeError(f"stage A wrote no time {n_a}; stage B would restart from 0")
     # stage B: second order, standard relaxation
     foam_set(cdir, "divSchemes/div(phi,U)", "bounded Gauss linearUpwind limited", fs)
     foam_set(cdir, "divSchemes/turbulence", "bounded Gauss limitedLinear 1", fs)
     foam_set(cdir, "relaxationFactors/fields/p", 0.3, fv)
     foam_set(cdir, "relaxationFactors/equations/U", 0.7, fv)
     foam_set(cdir, "relaxationFactors/equations/\"(k|omega|epsilon)\"", 0.7, fv)
+    foam_set(cdir, "writeInterval", opt.iters, cd)
     foam_set(cdir, "endTime", opt.iters, cd)
-    t = sh(f"{mpi} foamRun -parallel", cdir, "log.foamRun.stageB")
+    _clear_fo_output(cdir, n_a)
+    t = sh(f"{mpi} foamRun -parallel", cdir, "log.foamRun.stageB")   # startFrom latestTime = n_a
     if re.search(r"\bnan\b", t, re.I):
         raise RuntimeError("solution diverged (NaN)")
     for d in glob.glob(os.path.join(cdir, "processor*", str(n_a))):   # drop stage-A snapshot
@@ -228,7 +343,26 @@ def stage_solve(cdir, opt):
     return {}
 
 
+def _latest_time(cdir):
+    """Latest time directory of the decomposed case (where foamRun -parallel starts)."""
+    t = [float(os.path.basename(d)) for d in glob.glob(os.path.join(cdir, "processor0", "*"))
+         if re.fullmatch(r"\d+(\.\d+)?", os.path.basename(d))]
+    return max(t) if t else 0
+
+
+def _clear_fo_output(cdir, start):
+    """Remove function-object output that a previous (killed / retried) run left in
+    postProcessing/<fo>/<start>/. Otherwise OpenFOAM writes the new run next to it as
+    <file>_<start>.dat and the old, partial file keeps the plain name."""
+    name = f"{start:g}"
+    for d in glob.glob(os.path.join(cdir, "postProcessing", "*", name)):
+        shutil.rmtree(d, ignore_errors=True)
+
+
 def stage_post(cdir, opt):
+    # post.py has no case-specific edits (it reads case.json): always run the current template,
+    # so fixes to it also reach cases that were prepared earlier
+    shutil.copy(os.path.join(cfg.CFD_TEMPLATE, "post.py"), os.path.join(cdir, "post.py"))
     sh("python3 post.py", cdir, "log.post")
     res = json.load(open(os.path.join(cdir, "result.json")))
     if opt.clean and not getattr(opt, "is_reference", False):
@@ -239,14 +373,23 @@ def stage_post(cdir, opt):
 
 # ----------------------------------------------------------------------------- driver
 def run(study, case, opt):
-    rows = {r["case"]: r for r in read_designs(study)}
-    if case not in rows:
-        raise SystemExit(f"case {case} not in 2_shape_morphing/studies/{study}/designs.csv")
-    params = rows[case]["params"]
+    cases = {c["case"]: c for c in study_cases(study)}
+    if case not in cases:
+        raise SystemExit(f"case {case} is not in the exported geometry of '{study}' "
+                         f"({cfg.geometry_root(study)}/index.json); {_export_hint(study)}")
+    meta = load_meta(study, case)
+    params = meta["params"]
     opt.study = study
     cdir = case_dir(study, case)
     os.makedirs(cdir, exist_ok=True)
-    resolve_init(study, case, rows, opt)
+    resolve_init(study, case, cases, meta, opt)
+    if done(cdir, "prepare") and opt.redo != "prepare" and geometry_changed(study, case):
+        if not getattr(opt, "rerun_changed", False):
+            print(f"[{study}/{case}] the exported geometry changed since this case was prepared; "
+                  f"re-run with --rerun-changed (or --redo prepare)")
+            set_status(cdir, state="geometry changed")
+            return False
+        opt.redo = "prepare"
     if opt.redo:
         for s in STAGES[STAGES.index(opt.redo):]:
             p = os.path.join(cdir, f".done_{s}")
@@ -255,7 +398,7 @@ def run(study, case, opt):
         c = json.load(open(os.path.join(cdir, "case.json")))
         opt.init, opt.iters, opt.n_avg = c["init"], c["n_iter"], c["n_avg"]
 
-    print(f"[{study}/{case}] {label(params)}")
+    print(f"[{study}/{case}] {meta['label']}")
     set_status(cdir, state="running", error=None)
     t_case = time.time()
     for st in STAGES:
@@ -297,6 +440,8 @@ def add_args(ap):
     ap.add_argument("--stop-after", choices=STAGES, help="stop after this stage (e.g. prepare or mesh)")
     ap.add_argument("--redo", choices=STAGES, help="re-run from this stage")
     ap.add_argument("--clean", action="store_true", help="delete processor* dirs after post (saves ~600 MB/case)")
+    ap.add_argument("--rerun-changed", action="store_true",
+                    help="re-run (from prepare) cases whose exported geometry changed since they were run")
 
 
 def has_solution(case_path):
@@ -304,10 +449,10 @@ def has_solution(case_path):
                for d in glob.glob(os.path.join(case_path, "processor0", "*")))
 
 
-def resolve_init(study, case, rows, opt):
+def resolve_init(study, case, cases, meta, opt):
     """Pick the initial field: explicit --map-from > study's own converged baseline (c000) >
     global IONIQ 5 baseline (IONIQ 5 studies only) > potentialFoam."""
-    ref = next((c for c, r in rows.items() if label(r["params"]) == "baseline"), None)
+    ref = next((c for c, r in cases.items() if r["label"] == "baseline"), None)
     opt.is_reference = (case == ref)
     if opt.init == "potential":
         src = None
@@ -315,7 +460,7 @@ def resolve_init(study, case, rows, opt):
         src = opt.map_from
     elif ref and case != ref and has_solution(case_dir(study, ref)):
         src = case_dir(study, ref)
-    elif is_parametric(study):
+    elif meta.get("base") == cfg.IONIQ5_PARAMETRIC:
         src = BASELINE_CASE
     else:
         src = None                      # new vehicle without a converged reference yet

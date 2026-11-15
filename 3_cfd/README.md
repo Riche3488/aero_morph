@@ -5,7 +5,8 @@ about 1.6 M cells (snappyHexMesh, 2 layers, wall functions), 8 MPI processes.
 
 ## Run a study
 ```bash
-python3 3_cfd/run_study.py rear --clean          # all designs of 2_shape_morphing/studies/rear
+python3 2_shape_morphing/export_designs.py rear  # stage 2: export first (CFD never regenerates geometry)
+python3 3_cfd/run_study.py rear --clean          # all exported designs (studies/rear/geometry/index.json)
 python3 3_cfd/run_case.py  rear c003 [--stop-after mesh] [--redo solve]
 python3 3_cfd/compare.py   rear                  # also run automatically at the end of run_study
 ```
@@ -18,10 +19,20 @@ none, IONIQ 5 studies use `baseline_case/`, and a new vehicle is cold-started wi
 A new vehicle's c000 therefore runs first (cold start) and the other designs then start from it. The reference case
 keeps its `processor*` folders even with `--clean`.
 
+Stage 3 reads only the stage-2 hand-off folder (`index.json`, `<case>/meta.json`, `<case>/*.stl`) and imports no
+stage-1/2 code. `prepare` copies the STLs into `constant/geometry` and stores their hash in `case.json`; if the export
+changes afterwards, `run_study` lists the case as changed instead of reusing or silently mixing results
+(`--rerun-changed` or `--redo prepare` re-runs it; `--redo` with a later stage is refused for a changed
+geometry, because it would mesh the old copy). The geometry hash skips binary STL headers, is streamed, and is cached by
+file size + mtime in `runs/.geometry_hash_cache.json`, so checking large fused STLs repeatedly costs nothing. `compare.py` uses the variables stored in each case's `case.json` (what was actually
+run) and the case's own geometry copy.
+
 Per design: **prepare** (copies the stage-2 STLs, sets Aref = frontal area / 2) → **mesh** → **init**
 (`mapFieldsPar` from the source chosen above, falls back to potentialFoam) → **solve** (50 robust + 750 second-order
 iterations) → **post**. Each stage resumes where it stopped (`.done_*` markers). A failed design is
-logged in `status.json` and the batch continues.
+logged in `status.json` and the batch continues. Before each solver run, function-object output left in its start-time
+folder by a killed attempt is removed. `post.py` also takes the newest `<file>[_<t>].dat` per folder, so a resumed solve
+never averages a stale partial run. **post** always runs the current `template/post.py`.
 
 | option | default | meaning |
 |---|---|---|
@@ -30,6 +41,8 @@ logged in `status.json` and the batch continues.
 | `--map-from DIR` | auto | any decomposed converged case (auto: study c000 → baseline_case → potential) |
 | `--clean` | off | delete `processor*` after post (~600 MB per case) |
 | `--cases`, `--retry-failed` | | run_study subset / re-run failed cases |
+| `--rerun-changed` | off | re-run (from prepare) cases whose exported geometry changed since they were run |
+| `--redo STAGE` | | re-run from STAGE; in `run_study` this also applies to finished cases (`prepare` also takes changed ones) |
 
 ## Layout
 | path | content |

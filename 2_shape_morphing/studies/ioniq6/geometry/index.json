@@ -1,0 +1,31 @@
+{
+  "study": "ioniq6",
+  "base": "gen3d/runs/ioniq6/ioniq6_rough.stl",
+  "cases": [
+    {
+      "case": "c000",
+      "label": "baseline"
+    },
+    {
+      "case": "c001",
+      "label": "mode:ioniq6_trunk_drop\u00d7-2"
+    },
+    {
+      "case": "c002",
+      "label": "mode:ioniq6_trunk_drop\u00d72"
+    },
+    {
+      "case": "c003",
+      "label": "mode:ioniq6_rear_taper\u00d7-2"
+    },
+    {
+      "case": "c004",
+      "label": "mode:ioniq6_rear_taper\u00d72"
+    },
+    {
+      "case": "c005",
+      "label": "mode:ioniq6_rear_taper\u00d71, mode:ioniq6_trunk_drop\u00d71"
+    }
+  ],
+  "not_exported": []
+}

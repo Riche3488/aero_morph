@@ -18,10 +18,17 @@ Outputs (closed, watertight, outward normals):
 """
 import argparse
 import os
-import struct
+import sys
 
 import numpy as np
 from scipy.interpolate import PchipInterpolator
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:                  # shared `common` package (no other stage is imported)
+    sys.path.insert(0, _ROOT)
+from common import mesh_io  # noqa: E402
+from common.mesh_io import (check_watertight, orient_outward, signed_volume,  # noqa: E402,F401
+                            write_stl_ascii_multi, write_stl_binary)
 
 # ----------------------------------------------------------------------------
 # Main dimensions
@@ -378,56 +385,8 @@ def build_mirror(side, scale=1.0):
 
 
 # ----------------------------------------------------------------------------
-# Checks & IO
+# Checks & IO: signed_volume, orient_outward, check_watertight, write_stl_* come from common.mesh_io
 # ----------------------------------------------------------------------------
-def signed_volume(V, F):
-    a, b, c = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
-    return np.einsum("ij,ij->i", a, np.cross(b, c)).sum() / 6.0
-
-
-def orient_outward(V, F):
-    return F if signed_volume(V, F) > 0 else F[:, ::-1]
-
-
-def check_watertight(V, F):
-    e = np.vstack([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
-    key = np.sort(e, axis=1)
-    _, cnt = np.unique(key, axis=0, return_counts=True)
-    _, dcnt = np.unique(e, axis=0, return_counts=True)   # directed: each must be unique
-    a, b, c = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
-    area = 0.5 * np.linalg.norm(np.cross(b - a, c - a), axis=1)
-    return dict(edges_not_2=int((cnt != 2).sum()), dup_directed=int((dcnt > 1).sum()),
-                degenerate=int((area < 1e-6).sum()), min_area=float(area.min()))
-
-
-def write_stl_binary(path, V, F, name="solid"):
-    a, b, c = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
-    n = np.cross(b - a, c - a)
-    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-30)
-    data = np.zeros(len(F), dtype=[("n", "<f4", 3), ("v", "<f4", (3, 3)), ("a", "<u2")])
-    data["n"] = n
-    data["v"] = np.stack([a, b, c], 1)
-    with open(path, "wb") as f:
-        f.write(name.encode()[:80].ljust(80, b" "))
-        f.write(struct.pack("<I", len(F)))
-        f.write(data.tobytes())
-
-
-def write_stl_ascii_multi(path, parts):
-    with open(path, "w") as f:
-        for name, V, F in parts:
-            a, b, c = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
-            n = np.cross(b - a, c - a)
-            n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-30)
-            f.write(f"solid {name}\n")
-            for k in range(len(F)):
-                f.write(f" facet normal {n[k,0]:.6e} {n[k,1]:.6e} {n[k,2]:.6e}\n  outer loop\n")
-                for p in (a[k], b[k], c[k]):
-                    f.write(f"   vertex {p[0]:.6e} {p[1]:.6e} {p[2]:.6e}\n")
-                f.write("  endloop\n endfacet\n")
-            f.write(f"endsolid {name}\n")
-
-
 def build_all(res=1.0, design=None):
     if design is not None:
         set_design(design)
@@ -445,35 +404,8 @@ def build_all(res=1.0, design=None):
 
 
 def frontal_area(parts, h=4.0):
-    """Projected frontal area [m^2] (y-z plane, z>=0) by scan-line rasterisation (h mm grid)."""
-    ys = np.arange(-1200, 1200, h) + h / 2
-    zs = np.arange(0, 1800, h) + h / 2
-    mask = np.zeros((len(zs), len(ys)), bool)
-    for _, V, F in parts:
-        T = V[F][:, :, 1:]                                   # (n,3,2) y,z
-        a = 0.5 * ((T[:, 1, 0] - T[:, 0, 0]) * (T[:, 2, 1] - T[:, 0, 1])
-                   - (T[:, 2, 0] - T[:, 0, 0]) * (T[:, 1, 1] - T[:, 0, 1]))
-        T = T[np.abs(a) > 1e-9]
-        for tri in T:
-            j0, j1 = np.searchsorted(zs, [tri[:, 1].min(), tri[:, 1].max()])
-            if j1 <= j0:
-                continue
-            zz = zs[j0:j1, None]
-            # intersect scan lines with the 3 edges -> y-interval per line
-            p, q = tri, np.roll(tri, -1, axis=0)
-            dzv = q[:, 1] - p[:, 1]
-            with np.errstate(divide="ignore", invalid="ignore"):
-                t = (zz - p[:, 1]) / dzv
-                yv = p[:, 0] + t * (q[:, 0] - p[:, 0])
-            ok = (t >= 0) & (t <= 1) & (dzv != 0)
-            ylo = np.where(ok, yv, np.inf).min(1)
-            yhi = np.where(ok, yv, -np.inf).max(1)
-            i0 = np.searchsorted(ys, ylo)
-            i1 = np.searchsorted(ys, yhi)
-            for r, (u, v) in enumerate(zip(i0, i1)):
-                if v > u:
-                    mask[j0 + r, u:v] = True
-    return mask.sum() * h * h * 1e-6
+    """Projected frontal area [m^2] of parts in mm (y-z plane, z>=0), h mm grid sized to the parts."""
+    return mesh_io.frontal_area(parts, h) * 1e-6
 
 
 def main():

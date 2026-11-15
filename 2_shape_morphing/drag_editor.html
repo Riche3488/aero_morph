@@ -534,7 +534,7 @@ $("srv-load").addEventListener("click", async () => {
 });
 $("srv-save").addEventListener("click", async () => {
   const name = $("mname").value.trim();
-  const r = await fetch("api/save_mode?name=" + encodeURIComponent(name), { method: "POST", body: JSON.stringify(spec()) });
+  const r = await fetch("api/save_mode?name=" + encodeURIComponent(name), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec()) });
   const j = await r.json();
   $("srv-out").innerHTML = r.ok ? `<span class="qa-ok">saved ${j.path}</span>` : `<span class="qa-bad">${j.error}</span>`;
   if (r.ok) srvRefreshModes(j.name);
@@ -542,7 +542,7 @@ $("srv-save").addEventListener("click", async () => {
 $("srv-apply").addEventListener("click", async () => {
   const name = $("mname").value.trim();
   $("srv-out").innerHTML = "running full-resolution morph in Python …";
-  const r = await fetch("api/apply?name=" + encodeURIComponent(name) + "&amp=" + ($("amp").value / 100), { method: "POST", body: JSON.stringify(spec()) });
+  const r = await fetch("api/apply?name=" + encodeURIComponent(name) + "&amp=" + ($("amp").value / 100), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec()) });
   const j = await r.json();
   if (!r.ok) { $("srv-out").innerHTML = `<span class="qa-bad">${j.error}</span>`; return; }
   const q = j.qa, cls = q.status === "OK" ? "qa-ok" : "qa-bad";

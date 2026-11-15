@@ -2,8 +2,9 @@
 """
 Create / extend a design table: 2_shape_morphing/studies/<study>/designs.csv
 
-Design variables are the parametric morph parameters AND drag-mode amplitudes
-(`mode:<name>` for every 2_shape_morphing/modes/<name>.json).
+Design variables are the parametric morph parameters (IONIQ 5 base), drag-mode amplitudes
+(`mode:<name>` for every 2_shape_morphing/modes/<name>.json) and, for an STL base, the
+dimensional variables `dim:foh dim:roh dim:length dim:width dim:spoiler` (mm, dim_morph.py).
 
 Examples
   python3 2_shape_morphing/doe.py --list
@@ -15,6 +16,7 @@ Examples
   # any STL as the base (drag modes only); gen3d models read their wheels from report.json
   python3 2_shape_morphing/doe.py ioniq6 --base-stl gen3d/runs/ioniq6/ioniq6_rough.stl
   python3 2_shape_morphing/doe.py ioniq6 --sweep mode:ioniq6_trunk=0.5,1
+  python3 2_shape_morphing/doe.py ioniq6 --oat dim:foh dim:roh dim:length dim:width dim:spoiler
   # other STL: --wheels x_front x_rear track_front track_rear tire_diameter tire_width  (m)
 """
 import argparse
@@ -23,32 +25,41 @@ import sys
 import numpy as np
 
 import design_table as dt
-from design_table import geo
 
 
-def bounds(name):
+def bounds(name, study):
     if name.startswith(dt.MODE_PREFIX):
         lo, hi = dt.mode_range(name[len(dt.MODE_PREFIX):])
         return 0.0, lo, hi
-    if name not in geo.MORPH_PARAMS:
+    if name.startswith(dt.DIM_PREFIX):
+        d = name[len(dt.DIM_PREFIX):]
+        if d not in dt.dim_morph.PARAMS:
+            sys.exit(f"unknown variable '{name}' (see --list)")
+        if dt.is_parametric(study):
+            sys.exit(f"'{name}': dimensional variables apply to STL-base studies (doe.py <study> --base-stl ...)")
+        return (0.0, *dt.dim_range(d))
+    if not dt.is_parametric(study):
+        sys.exit(f"'{name}': study '{study}' has an STL base, only drag modes (mode:<name>) and "
+                 f"dimensional variables (dim:<name>) are variables")
+    if name not in dt.morph_params():
         sys.exit(f"unknown variable '{name}' (see --list)")
-    return geo.MORPH_PARAMS[name][:3]
+    return dt.morph_params()[name][:3]
 
 
-def oat(names, levels):
+def oat(names, levels, study):
     out = []
     for n in names:
-        b, lo, hi = bounds(n)
+        b, lo, hi = bounds(n, study)
         vals = np.linspace(lo, hi, levels) if levels > 2 else [lo, hi]
         out += [{n: float(v)} for v in vals if abs(v - b) > 1e-9]
     return out
 
 
-def lhs(names, n, seed):
+def lhs(names, n, seed, study):
     rng = np.random.default_rng(seed)
     cols = []
     for name in names:
-        _, lo, hi = bounds(name)
+        _, lo, hi = bounds(name, study)
         u = (rng.permutation(n) + rng.random(n)) / n
         cols.append(lo + u * (hi - lo))
     return [{name: round(float(c[i]), 3) for name, c in zip(names, cols)} for i in range(n)]
@@ -94,8 +105,11 @@ def main():
         print(f"base: {dt.base_id(study) if study else dt.IONIQ5_ID + ' (default)'}")
         print(f"{'variable':26s} {'base':>6s} {'lower':>7s} {'upper':>7s} unit  description")
         if not study or dt.is_parametric(study):
-            for k, (b, lo, hi, u, d) in geo.MORPH_PARAMS.items():
+            for k, (b, lo, hi, u, d) in dt.morph_params().items():
                 print(f"{k:26s} {b:6g} {lo:7g} {hi:7g} {u:4s}  {d}")
+        for d in dt.available_dims(study):
+            b, lo, hi, u, desc = dt.dim_morph.PARAMS[d]
+            print(f"{'dim:' + d:26s} {b:6g} {lo:7g} {hi:7g} {u:4s}  {desc}")
         for m in dt.available_modes(study):
             spec = dt.mode_spec(m)
             lo, hi = dt.mode_range(m)
@@ -109,35 +123,35 @@ def main():
 
     new = []
     if a.oat:
-        new += oat(a.oat, a.levels)
+        new += oat(a.oat, a.levels, a.study)
     if a.sweep:
         for s in a.sweep:
             k, vals = kv(s)
-            bounds(k)
+            bounds(k, a.study)
             new += [{k: float(v)} for v in vals.split(",")]
     if a.lhs:
         if not a.params:
             sys.exit("--lhs needs --params")
-        new += lhs(a.params, a.lhs, a.seed)
+        new += lhs(a.params, a.lhs, a.seed, a.study)
     if a.add:
         new.append({k: float(v) for k, v in map(kv, a.add)})
 
     rows = dt.read_designs(a.study)
     if not rows and not a.no_baseline:
-        rows.append({"case": "c000", "params": dt.full({})})
-    keyf = lambda p: tuple(sorted((k, round(v, 6)) for k, v in dt.full(p).items() if abs(v) > 1e-12 or k in dt.BASE))
+        rows.append({"case": "c000", "params": dt.full({}, a.study)})
+    keyf = lambda p: dt.design_key(p, a.study)
     seen = {keyf(r["params"]) for r in rows}
     nxt = 1 + max([int(r["case"][1:]) for r in rows if r["case"][1:].isdigit()] or [0])
     added = 0
     for p in new:
-        p = dt.full(p)
+        p = dt.full(p, a.study)
         try:
             errs = dt.validate(p, a.study)
         except (KeyError, ValueError) as e:
-            print(f"  rejected {dt.label(p)}: {e}")
+            print(f"  rejected {dt.label(p, a.study)}: {e}")
             continue
         if errs:
-            print(f"  skip {dt.label(p)}: {errs}")
+            print(f"  skip {dt.label(p, a.study)}: {errs}")
             continue
         if keyf(p) in seen:
             continue

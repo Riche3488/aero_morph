@@ -16,9 +16,8 @@ import numpy as np
 from matplotlib.collections import LineCollection
 
 import design_table as dt
-import rbf
-from drag_morph import read_stl
-from export_designs import export_case
+from common.mesh_io import plane_cut, read_stl
+from export_designs import export_case, write_index
 
 SECTIONS_X = (1.5, 3.0, 4.3)     # m
 PLAN_Z = 0.55                    # m (plan-view cut height, bumper level)
@@ -32,7 +31,7 @@ def load_body(study, case, params):
 
 
 def cut(parts, axis, value, names=("body", "mirror_L", "mirror_R")):
-    segs = [rbf.plane_cut(V, F, axis, value) for n, (V, F) in parts.items() if n in names]
+    segs = [plane_cut(V, F, axis, value) for n, (V, F) in parts.items() if n in names]
     return np.vstack([s for s in segs if len(s)]) if any(len(s) for s in segs) else np.zeros((0, 2, 3))
 
 
@@ -78,6 +77,7 @@ def main():
     ax.autoscale(); ax.set_aspect("equal"); ax.grid(alpha=.3); ax.legend(ncol=10, fontsize=7)
     ax.set_title(f"{a.study}: centre-line profiles of all designs")
     plt.tight_layout(); plt.savefig(os.path.join(out, "_all_side.png"), dpi=90); plt.close()
+    write_index(a.study)
     print(f"{len(rows)} previews -> {out}")
 
 

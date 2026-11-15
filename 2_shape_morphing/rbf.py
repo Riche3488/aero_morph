@@ -32,6 +32,8 @@ import json
 
 import numpy as np
 
+from common.mesh_io import plane_cut  # noqa: F401  (re-exported: rbf.plane_cut)
+
 EPS = 1e-12
 
 
@@ -196,25 +198,6 @@ def combine_specs(specs_and_scales):
         if spec.get("symmetry"):
             out["symmetry"] = spec["symmetry"]
     return out
-
-
-def plane_cut(V, F, axis, value):
-    """Intersect a triangle mesh with the plane x[axis]=value -> array of segments (n,2,3)."""
-    value = value + 1e-7 * max(np.ptp(V[:, axis]), 1e-12)   # avoid planes through vertex rows
-    d = V[:, axis] - value
-    dt = d[F]
-    s = np.sign(dt)
-    cross = (s.min(1) < 0) & (s.max(1) > 0)
-    segs = []
-    for tri, dd in zip(V[F[cross]], dt[cross]):
-        pts = []
-        for a, b in ((0, 1), (1, 2), (2, 0)):
-            if (dd[a] < 0) != (dd[b] < 0):
-                t = dd[a] / (dd[a] - dd[b])
-                pts.append(tri[a] + t * (tri[b] - tri[a]))
-        if len(pts) == 2:
-            segs.append(pts)
-    return np.asarray(segs).reshape(-1, 2, 3)
 
 
 # ----------------------------------------------------------------------------- QA

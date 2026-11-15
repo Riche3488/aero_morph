@@ -15,44 +15,15 @@ Apply drag-style RBF morph(s) to arbitrary STL geometry.
 import argparse
 import json
 import os
-import struct
 import sys
 
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # shared `common`
 import rbf  # noqa: E402
-
-
-# ----------------------------------------------------------------------------- STL io
-def read_stl(path):
-    with open(path, "rb") as f:
-        data = f.read()
-    n = struct.unpack("<I", data[80:84])[0] if len(data) >= 84 else 0
-    if len(data) == 84 + 50 * n and n > 0:
-        rec = np.frombuffer(data, dtype=[("n", "<f4", 3), ("v", "<f4", (3, 3)), ("a", "<u2")], count=n, offset=84)
-        tri = rec["v"].astype(float)
-    else:
-        txt = data.decode("ascii", "ignore").split()
-        pts = [(float(txt[i + 1]), float(txt[i + 2]), float(txt[i + 3]))
-               for i in range(len(txt) - 3) if txt[i] == "vertex"]
-        tri = np.asarray(pts, float).reshape(-1, 3, 3)
-    # weld duplicate corners -> indexed mesh (keeps topology for watertight checks)
-    P = tri.reshape(-1, 3)
-    scale = max(np.abs(P).max(), 1e-12)
-    key = np.round(P / scale * 1e9).astype(np.int64)
-    _, idx, inv = np.unique(key, axis=0, return_index=True, return_inverse=True)
-    return P[idx], inv.reshape(-1, 3)
-
-
-def write_stl(path, V, F, name="morphed"):
-    a, b, c = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
-    n = np.cross(b - a, c - a)
-    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-30)
-    rec = np.zeros(len(F), dtype=[("n", "<f4", 3), ("v", "<f4", (3, 3)), ("a", "<u2")])
-    rec["n"], rec["v"] = n, np.stack([a, b, c], 1)
-    with open(path, "wb") as f:
-        f.write(name.encode()[:80].ljust(80, b" ")); f.write(struct.pack("<I", len(F))); f.write(rec.tobytes())
+from common.mesh_io import read_stl  # noqa: E402,F401  (re-exported: drag_morph.read_stl)
+from common.mesh_io import write_stl_binary as write_stl  # noqa: E402,F401
 
 
 def edge_check(F):

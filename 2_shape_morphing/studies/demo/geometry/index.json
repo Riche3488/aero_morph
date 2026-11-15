@@ -1,0 +1,35 @@
+{
+  "study": "demo",
+  "base": "ioniq5_parametric",
+  "cases": [
+    {
+      "case": "c000",
+      "label": "baseline"
+    },
+    {
+      "case": "c001",
+      "label": "tail_taper=80mm"
+    },
+    {
+      "case": "c002",
+      "label": "roof_rear_drop=-20mm"
+    },
+    {
+      "case": "c003",
+      "label": "roof_rear_drop=60mm"
+    },
+    {
+      "case": "c004",
+      "label": "tail_taper=40mm, diffuser_angle=4deg"
+    },
+    {
+      "case": "c005",
+      "label": "mode:rear_roof_drop\u00d71"
+    },
+    {
+      "case": "c006",
+      "label": "tail_taper=40mm, mode:front_bumper_push\u00d71"
+    }
+  ],
+  "not_exported": []
+}

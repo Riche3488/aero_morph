@@ -12,24 +12,32 @@ For each design (IONIQ 5 base):
                         to body + mirrors; wheels are frozen and the clearance is checked
   3. write studies/<study>/geometry/<case>/
         body.stl wheel_FL.stl wheel_FR.stl wheel_RL.stl wheel_RR.stl [mirror_L.stl mirror_R.stl]
-        meta.json   (params, label, frontal area, QA, units = m)
+        meta.json   (params, variables, label, frontal area, wheels, QA, units = m)
+  4. write studies/<study>/geometry/index.json: the designs of designs.csv whose export is
+     up to date. This folder is the complete hand-off to stage 3 (CFD reads nothing else).
 For an STL base: drag modes are applied in the STL's own coordinates (as drawn in the GUI) with
-the wheel zones frozen (smooth falloff), then the z offset (tyre sink) is applied and the fused
+the wheel zones frozen (smooth falloff), then the dimensional variables dim:* (dim_morph.py:
+overhangs, length, width, spoiler height; tyres move rigidly with their wheel centre), then
+the z offset (tyre sink) is applied and the fused
 wheels are split into regions -> body.stl = multi-solid ASCII STL with solids
 body / wheelFront / wheelRear (one closed surface; stage 3 turns the regions into patches).
 
-Up-to-date designs are skipped (same params, same mode files, same base / resolution).
+Up-to-date designs are skipped (same params, same mode files, same base / resolution, and for
+the IONIQ 5 base the same stage-1 generator source).
 """
 import argparse
 import hashlib
+import inspect
 import json
 import os
 
 import numpy as np
 
 import design_table as dt
+import dim_morph
 import rbf
-from design_table import geo
+from common import mesh_io as mio
+from design_table import cfg
 
 FROZEN = ("wheel_FL", "wheel_FR", "wheel_RL", "wheel_RR")
 _BASE_CACHE = {}
@@ -66,20 +74,20 @@ def split_wheels(V, F, wheels, tol_r=0.004, tol_y=0.025):
 def _load_base(path):
     key = (path, os.path.getmtime(path))
     if key not in _BASE_CACHE:
-        from drag_morph import read_stl
-        _BASE_CACHE[key] = read_stl(path)
+        _BASE_CACHE[key] = mio.read_stl(path)
     return _BASE_CACHE[key]
 
 
 def export_stl_base(study, case, params, conf, out, quiet):
     base = conf["base"]
-    path = os.path.join(dt.cfg.ROOT, base["path"]) if not os.path.isabs(base["path"]) else base["path"]
+    path = _base_path(base)
     _, modes = dt.split(params)
     V0, F = _load_base(path)
-    chk = geo.check_watertight(V0, F)
+    chk = mio.check_watertight(V0, F)
     if chk["edges_not_2"]:
         raise RuntimeError(f"base STL {base['path']} is not watertight ({chk['edges_not_2']} open edges)")
     wheels0 = base["wheels"]
+    dims = dt.split_dims(params)
     V, qa = V0.copy(), {}
     if modes:
         spec = rbf.combine_specs([(dt.mode_spec(m), a) for m, a in modes.items()])
@@ -94,6 +102,25 @@ def export_stl_base(study, case, params, conf, out, quiet):
         if rep["status"] != "OK":
             raise RuntimeError(f"{case}: drag morph quality failed: detJ={rep['min_detJ']:.3f} "
                                f"flips={rep['flipped_triangles']}")
+    if dims:
+        lm = dim_morph.detect_landmarks(V0, F, wheels0, base.get("dim_landmarks"))
+        dm = dim_morph.DimMorph(dims, lm, wheels0)
+        Vb = V
+        V = Vb + dm.displacement(Vb, freeze=wheel_freeze_mask(Vb, wheels0))
+        rep = dim_morph.quality(dm, Vb, V, F)
+        rep["landmarks"] = {k: (np.round(v, 4).tolist() if isinstance(v, (list, tuple)) else
+                                v if isinstance(v, str) else round(float(v), 4)) for k, v in lm.items()}
+        qa["dims"] = rep
+        if rep["status"] != "OK":
+            raise RuntimeError(f"{case}: dimensional morph quality failed: detJ={rep['min_detJ']:.3f} "
+                               f"flips={rep['flipped_triangles']}")
+        wheels0 = dm.transform_wheels(wheels0)
+    parts, files, wheels = _write_fused(out, V, F, wheels0, base)
+    return parts, files, wheels, qa
+
+
+def _write_fused(out, V, F, wheels0, base):
+    """Tyre-sink offset, wheels split into regions -> out/body.stl (multi-solid ASCII)."""
     dz = base.get("z_offset", 0.0)
     V = V + np.array([0, 0, dz])
     wheels = {k: {**w, "z": w["z"] + dz} for k, w in wheels0.items()}
@@ -104,10 +131,46 @@ def export_stl_base(study, case, params, conf, out, quiet):
     reg = split_wheels(V, F, wheels) if base.get("split_wheels", True) else np.zeros(len(F), int)
     names = ["body", "wheelFront", "wheelRear"]
     solids = [(n, V, F[reg == k]) for k, n in enumerate(names) if (reg == k).any()]
-    geo.write_stl_ascii_multi(os.path.join(out, "body.stl"), solids)
-    files = {"body": {"triangles": int(len(F)), "volume_m3": round(float(geo.signed_volume(V, F)), 6),
+    mio.write_stl_ascii_multi(os.path.join(out, "body.stl"), solids)
+    files = {"body": {"triangles": int(len(F)), "volume_m3": round(float(mio.signed_volume(V, F)), 6),
                       "regions": {n: int(len(f)) for n, _, f in solids}}}
-    return [("body", V, F)], files, wheels, qa
+    return [("body", V, F)], files, wheels
+
+
+def _import_path(imp):
+    return imp["file"] if os.path.isabs(imp["file"]) else os.path.join(cfg.ROOT, imp["file"])
+
+
+def export_imported(study, case, params, conf, out):
+    """A case whose geometry is a given STL of a shape set (study.json "imports", see
+    shape_set.py): aligned to the base frame, wheels at the morpher's positions for the case's
+    dimensional values, then written like a morphed case."""
+    import shape_set
+    imp = conf["imports"][case]
+    path = _import_path(imp)
+    V, F, scale = shape_set.read_given(path)
+    chk = mio.check_watertight(V, F)
+    if chk["edges_not_2"]:
+        raise RuntimeError(f"{case}: {imp['file']} is not watertight ({chk['edges_not_2']} open edges); "
+                           f"stage 3 needs a closed surface")
+    base = conf["base"]
+    V0, F0 = _load_base(_base_path(base))
+    dims = dt.split_dims(params)
+    lm = dim_morph.detect_landmarks(V0, F0, base["wheels"], base.get("dim_landmarks"))
+    wheels0 = dim_morph.DimMorph(dims, lm, base["wheels"]).transform_wheels(base["wheels"])
+    t = np.asarray(imp["translation_mm"], float) / 1e3 if imp.get("translation_mm") is not None else None
+    if t is None:                                   # not compared at import time: align now
+        b = shape_set.study_base(study)
+        t = shape_set.Prediction(b, dims).align(V[:: max(1, len(V) // 200_000)])
+    parts, files, wheels = _write_fused(out, V + t, F, wheels0, base)
+    qa = {"import": {"source": imp["file"], "set": imp.get("set"), "units_scale": scale,
+                     "translation_mm": np.round(t * 1e3, 2).tolist(),
+                     "deviation_vs_morpher": imp.get("deviation_vs_morpher", {})}}
+    return parts, files, wheels, qa
+
+
+def _base_path(base):
+    return base["path"] if os.path.isabs(base["path"]) else os.path.join(cfg.ROOT, base["path"])
 
 
 def _mode_hash(modes):
@@ -117,21 +180,81 @@ def _mode_hash(modes):
     return h.hexdigest()[:12]
 
 
+def file_hash(path):
+    """Short sha1 of a file (read in chunks: fused case STLs are hundreds of MB)."""
+    h = hashlib.sha1()
+    with open(path, "rb") as f:
+        for b in iter(lambda: f.read(1 << 20), b""):
+            h.update(b)
+    return h.hexdigest()[:12]
+
+
+_CODE_HASH = {}
+
+
+def code_hash(kind):
+    """Hash of the source that shapes the exported geometry of a kind of case, so that code
+    edits invalidate the cache: the export / region-split / writer functions of this file and
+    common/mesh_io.py always; plus rbf.py (drag modes), dim_morph.py (dim:*), the shape-set
+    reader (imported STLs). Only geometry code, so meta / report edits keep the cache."""
+    if kind not in _CODE_HASH:
+        import shape_set
+        from common import mesh_io
+        objs = [wheel_freeze_mask, split_wheels, export_stl_base, _write_fused, export_case, mesh_io]
+        objs += {"modes": [rbf], "dims": [dim_morph], "import": [shape_set.read_given, export_imported]}.get(kind, [])
+        h = hashlib.sha1()
+        for o in objs:
+            h.update(inspect.getsource(o).encode())
+        _CODE_HASH[kind] = h.hexdigest()[:12]
+    return _CODE_HASH[kind]
+
+
+def signature(study, params, res, conf=None, case=None):
+    """Everything the exported geometry depends on (cache key)."""
+    conf = conf or dt.study_config(study)
+    _, modes = dt.split(params)
+    sig = {"params": params, "res": res, "modes_hash": _mode_hash(modes), "base": conf["base"],
+           "code_hash": code_hash("base")}
+    if modes:
+        sig["rbf_hash"] = code_hash("modes")
+    imp = conf.get("imports", {}).get(case) if case else None
+    if imp:                                          # given STL: the file is the geometry
+        p = _import_path(imp)
+        sig["import"] = {**imp, "mtime": os.path.getmtime(p), "size": os.path.getsize(p)}
+        sig["import_code_hash"] = code_hash("import")
+        return sig
+    if conf["base"]["type"] == "stl":
+        sig["base_mtime"] = os.path.getmtime(_base_path(conf["base"]))
+        if dt.split_dims(params):
+            sig["dim_morph_hash"] = code_hash("dims")                 # morph code edits invalidate the cache
+    else:
+        sig["generator_hash"] = file_hash(dt.generator_file())      # stage-1 code edits invalidate the cache
+    return sig
+
+
 def export_case(study, case, params, res=0.5, force=False, quiet=False):
-    params = dt.full(params)
+    params = dt.full(params, study)
     geo_p, modes = dt.split(params)
     conf = dt.study_config(study)
     out = dt.geometry_dir(study, case)
     meta_path = os.path.join(out, "meta.json")
-    sig = {"params": params, "res": res, "modes_hash": _mode_hash(modes), "base": conf["base"]}
-    if conf["base"]["type"] == "stl":
-        bp = conf["base"]["path"]
-        sig["base_mtime"] = os.path.getmtime(bp if os.path.isabs(bp) else os.path.join(dt.cfg.ROOT, bp))
+    sig = signature(study, params, res, conf, case)
     if not force and os.path.exists(meta_path):
         old = json.load(open(meta_path))
         if old.get("signature") == sig and old.get("status") == "ok":
             return old
 
+    if case in conf.get("imports", {}):            # geometry = a given STL (values may lie outside the morpher range)
+        unknown = [k for k in dt.split_dims(params) if k not in dim_morph.PARAMS]
+        if unknown:
+            raise RuntimeError(f"{case}: unknown dimensional variables {unknown}")
+        if modes or geo_p:                         # the given geometry is used as is: nothing else is applied
+            raise RuntimeError(f"{case}: imported geometry takes only dim:* values (they label the given STL); "
+                               f"{sorted([dt.MODE_PREFIX + m for m in modes] + list(geo_p))} would not be applied "
+                               f"and would mislabel the case")
+        parts, files, wheels, qa = export_imported(study, case, params, conf, out)
+        return _write_meta(study, case, params, conf, out, parts, files, wheels, qa, modes, sig, quiet,
+                           layout="fused_regions", vehicle=conf["base"].get("name", "stl"))
     errs = dt.validate(params, study)
     if errs:
         raise RuntimeError(f"{case}: invalid design: {errs}")
@@ -139,6 +262,7 @@ def export_case(study, case, params, res=0.5, force=False, quiet=False):
         parts, files, wheels, qa = export_stl_base(study, case, params, conf, out, quiet)
         return _write_meta(study, case, params, conf, out, parts, files, wheels, qa, modes, sig, quiet,
                            layout="fused_regions", vehicle=conf["base"].get("name", "stl"))
+    geo = dt.generator()
     geo.set_design(geo_p)
     parts = [(n, V * 1e-3, F) for n, V, F in geo.build_all(res=res)]      # -> metres
     geo.set_design()
@@ -172,26 +296,46 @@ def export_case(study, case, params, res=0.5, force=False, quiet=False):
             os.remove(os.path.join(out, f))
     files = {}
     for n, V, F in parts:
-        chk = geo.check_watertight(V, F)
+        chk = mio.check_watertight(V, F)
         if chk["edges_not_2"] or chk["dup_directed"]:
             raise RuntimeError(f"{case}: {n} not watertight {chk}")
-        geo.write_stl_binary(os.path.join(out, n + ".stl"), V, F, n)
-        files[n] = {"triangles": int(len(F)), "volume_m3": round(float(geo.signed_volume(V, F)), 6)}
-    return _write_meta(study, case, params, conf, out, parts, files, dt.IONIQ5_WHEELS, qa, modes, sig, quiet,
+        mio.write_stl_binary(os.path.join(out, n + ".stl"), V, F, n)
+        files[n] = {"triangles": int(len(F)), "volume_m3": round(float(mio.signed_volume(V, F)), 6)}
+    return _write_meta(study, case, params, conf, out, parts, files, dt.ioniq5_wheels(), qa, modes, sig, quiet,
                        layout="separate_parts", vehicle="IONIQ 5")
 
 
 def _write_meta(study, case, params, conf, out, parts, files, wheels, qa, modes, sig, quiet, layout, vehicle):
-    area = geo.frontal_area([(n, V * 1e3, F) for n, V, F in parts])
+    area = mio.frontal_area([(n, V * 1e3, F) for n, V, F in parts], h=4.0) * 1e-6     # 4 mm grid -> m^2
     Vb = parts[0][1]
-    meta = {"case": case, "study": study, "label": dt.label(params), "params": params, "vehicle": vehicle,
-            "base": dt.base_id(study), "units": "m", "frontal_area": area, "parts": files, "cfd_layout": layout,
+    meta = {"case": case, "study": study, "label": dt.label(params), "params": params,
+            "variables": dt.variables(params, study), "vehicle": vehicle, "base": dt.base_id(study),
+            "reference_cd": dt.reference_cd(study), "units": "m", "frontal_area": area, "parts": files,
+            "cfd_layout": layout,
             "wheels": wheels, "bbox": [Vb.min(0).round(4).tolist(), Vb.max(0).round(4).tolist()],
-            "drag_modes": modes, "qa": qa, "signature": sig, "status": "ok"}
+            "drag_modes": modes, "dims_mm": dt.split_dims(params), "qa": qa, "signature": sig, "status": "ok"}
     json.dump(meta, open(os.path.join(out, "meta.json"), "w"), indent=2)
     if not quiet:
         print(f"  {case}: A={area:.4f} m²  {dt.label(params)}")
     return meta
+
+
+def write_index(study, res=0.5):
+    """geometry/index.json = designs of designs.csv whose exported geometry is up to date.
+    Stage 3 runs exactly these cases; stale or failed exports are left out (and listed)."""
+    cases, stale = [], []
+    conf = dt.study_config(study)
+    for r in dt.read_designs(study):
+        mp = os.path.join(dt.geometry_dir(study, r["case"]), "meta.json")
+        m = json.load(open(mp)) if os.path.exists(mp) else {}
+        if m.get("status") == "ok" and m.get("signature") == signature(study, r["params"], m.get("signature", {}).get("res", res), conf, r["case"]):
+            cases.append({"case": r["case"], "label": m["label"]})
+        else:
+            stale.append(r["case"])
+    os.makedirs(cfg.geometry_root(study), exist_ok=True)
+    json.dump({"study": study, "base": dt.base_id(study), "cases": cases, "not_exported": stale},
+              open(os.path.join(cfg.geometry_root(study), "index.json"), "w"), indent=2)
+    return cases, stale
 
 
 def main():
@@ -212,6 +356,7 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"  {r['case']}: FAILED {e}")
             failed.append(r["case"])
+    write_index(a.study, a.res)
     if failed:
         raise SystemExit(f"failed: {failed}")
 

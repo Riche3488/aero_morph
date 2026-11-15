@@ -3,20 +3,26 @@
   "study": "ioniq6",
   "label": "mode:ioniq6_rear_taper\u00d71, mode:ioniq6_trunk_drop\u00d71",
   "params": {
-    "ride_height": 0.0,
-    "hood_height": 0.0,
-    "front_corner": 0.0,
-    "windshield_rake": 0.0,
-    "roof_rear_drop": 0.0,
-    "spoiler_length": 0.0,
-    "tail_taper": 0.0,
-    "diffuser_angle": 0.0,
-    "mirror_scale": 1.0,
     "mode:ioniq6_rear_taper": 1.0,
     "mode:ioniq6_trunk_drop": 1.0
   },
+  "variables": {
+    "mode:ioniq6_rear_taper": {
+      "baseline": 0.0,
+      "lower": -2,
+      "upper": 2,
+      "unit": "amp"
+    },
+    "mode:ioniq6_trunk_drop": {
+      "baseline": 0.0,
+      "lower": -2,
+      "upper": 2,
+      "unit": "amp"
+    }
+  },
   "vehicle": "Hyundai IONIQ 6",
   "base": "gen3d/runs/ioniq6/ioniq6_rough.stl",
+  "reference_cd": 0.21,
   "units": "m",
   "frontal_area": 2.333984,
   "parts": {
@@ -63,6 +69,7 @@
     "ioniq6_rear_taper": 1.0,
     "ioniq6_trunk_drop": 1.0
   },
+  "dims_mm": {},
   "qa": {
     "body": {
       "max_displacement": 0.03956263168174934,
@@ -79,15 +86,6 @@
   },
   "signature": {
     "params": {
-      "ride_height": 0.0,
-      "hood_height": 0.0,
-      "front_corner": 0.0,
-      "windshield_rake": 0.0,
-      "roof_rear_drop": 0.0,
-      "spoiler_length": 0.0,
-      "tail_taper": 0.0,
-      "diffuser_angle": 0.0,
-      "mirror_scale": 1.0,
       "mode:ioniq6_rear_taper": 1.0,
       "mode:ioniq6_trunk_drop": 1.0
     },
@@ -115,8 +113,12 @@
           "width": 0.225
         }
       },
-      "split_wheels": true
+      "split_wheels": true,
+      "reference_cd": 0.21,
+      "reference_cd_note": "Hyundai published Cd for IONIQ 6"
     },
+    "code_hash": "e489815d629e",
+    "rbf_hash": "6f27875d54f1",
     "base_mtime": 1794641359.4621325
   },
   "status": "ok"

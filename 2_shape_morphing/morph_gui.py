@@ -11,7 +11,7 @@ Opens the editor in the browser with the model already loaded. In the editor:
   * "Save to modes/"         -> 2_shape_morphing/modes/<name>.json (usable as design variable mode:<name>)
   * "Apply in Python"        -> full-resolution morph with rbf.py on the server:
                                 <out>/<stem>__<name>.stl, <stem>__<name>_qa.json, <stem>__<name>.png
-Server binds to 127.0.0.1 only. It serves just the editor, the given STL and its own outputs,
+Server binds to 127.0.0.1 only and refuses cross-site / foreign-host requests (local_server.py). It serves just the editor, the given STL and its own outputs,
 and only writes inside modes/ and the output folder.
 """
 import argparse
@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 import pipeline_config as cfg  # noqa: E402
 import rbf  # noqa: E402
 from drag_morph import read_stl, render, write_stl  # noqa: E402
+from local_server import request_problem  # noqa: E402
 
 NAME_RE = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
 
@@ -72,13 +73,16 @@ def make_handler(model_path, out_dir):
 
         def do_GET(self):
             u = urlparse(self.path); q = parse_qs(u.query)
+            bad = request_problem(self)
+            if bad:
+                return self._send(403, {"error": bad})
             try:
                 if u.path in ("/", "/index.html"):
                     return self._send(200, open(editor, "rb").read(), "text/html; charset=utf-8")
                 if u.path == "/api/info":
-                    return self._send(200, {"model": os.path.relpath(model_path, cfg.ROOT) if model_path.startswith(cfg.ROOT) else model_path,
-                                            "model_name": model_name, "modes_dir": os.path.relpath(cfg.MORPH_MODES, cfg.ROOT),
-                                            "out_dir": os.path.relpath(out_dir, cfg.ROOT) if out_dir.startswith(cfg.ROOT) else out_dir,
+                    return self._send(200, {"model": cfg.rel(model_path),
+                                            "model_name": model_name, "modes_dir": cfg.rel(cfg.MORPH_MODES),
+                                            "out_dir": cfg.rel(out_dir),
                                             "default_mode_name": f"{stem}_mode"})
                 if u.path == "/api/model.stl":
                     return self._send(200, open(model_path, "rb").read(), "application/octet-stream")
@@ -100,6 +104,9 @@ def make_handler(model_path, out_dir):
 
         def do_POST(self):
             u = urlparse(self.path); q = parse_qs(u.query)
+            bad = request_problem(self)
+            if bad:
+                return self._send(403, {"error": bad})
             try:
                 n = int(self.headers.get("Content-Length", 0))
                 if n > 20_000_000:
@@ -109,12 +116,12 @@ def make_handler(model_path, out_dir):
                 if u.path == "/api/save_mode":
                     spec.pop("preview_amplitude", None)
                     spec["description"] = spec.get("description") or f"drag mode made on {model_name}"
-                    spec["source_geometry"] = os.path.relpath(model_path, cfg.ROOT) if model_path.startswith(cfg.ROOT) else model_path
+                    spec["source_geometry"] = cfg.rel(model_path)
                     spec.setdefault("amplitude_range", [-2, 2])
                     os.makedirs(cfg.MORPH_MODES, exist_ok=True)
                     p = os.path.join(cfg.MORPH_MODES, name + ".json")
                     json.dump(spec, open(p, "w"), indent=2)
-                    return self._send(200, {"name": name, "path": os.path.relpath(p, cfg.ROOT)})
+                    return self._send(200, {"name": name, "path": cfg.rel(p)})
                 if u.path == "/api/apply":
                     amp = float((q.get("amp") or ["1"])[0])
                     spec = rbf.combine_specs([(spec, amp)])
@@ -130,7 +137,7 @@ def make_handler(model_path, out_dir):
                               open(os.path.join(out_dir, base + "_qa.json"), "w"), indent=2)
                     render(os.path.join(out_dir, base + ".png"), [(stem, V, F)], [(stem, V1, F)], [],
                            f"{model_name}: {name} (amplitude {amp:g})")
-                    return self._send(200, {"qa": rep, "stl": os.path.relpath(stl, cfg.ROOT) if stl.startswith(cfg.ROOT) else stl,
+                    return self._send(200, {"qa": rep, "stl": cfg.rel(stl),
                                             "png_url": f"api/out/{base}.png"})
                 return self._send(404, {"error": "not found"})
             except Exception as e:  # noqa: BLE001

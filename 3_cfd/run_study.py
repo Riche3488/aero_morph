@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-Run every design of a study (sequentially, each case on --np cores), then build
-the comparison report. Finished cases are skipped, failed ones are reported and
-the batch continues.
+Run every exported design of a study (sequentially, each case on --np cores), then
+build the comparison report. Finished cases are skipped, failed ones are reported and
+the batch continues. The case list is the stage-2 hand-off
+2_shape_morphing/studies/<study>/geometry/index.json (no stage-1/2 code is imported).
 
   python3 3_cfd/run_study.py <study> [--cases c001 c003] [run_case options...]
 
 Typical workflow
   python3 2_shape_morphing/doe.py             rear --oat roof_rear_drop tail_taper diffuser_angle
   python3 2_shape_morphing/preview_designs.py rear   # export + check the shapes (seconds)
+                                                     # (or export_designs.py rear: export only)
   python3 3_cfd/run_study.py                  rear --clean   # ~20 min per design
   python3 3_cfd/compare.py                    rear   # (also run automatically at the end)
 """
@@ -19,7 +21,7 @@ import time
 
 import compare
 import run_case
-from run_case import case_dir, read_designs
+from run_case import case_dir, geometry_changed, study_cases
 
 
 def main():
@@ -30,9 +32,10 @@ def main():
     run_case.add_args(ap)
     a = ap.parse_args()
 
-    rows = read_designs(a.study)
+    rows = study_cases(a.study)
     if not rows:
-        raise SystemExit(f"no designs in 2_shape_morphing/studies/{a.study}/designs.csv (use 2_shape_morphing/doe.py)")
+        raise SystemExit(f"no exported designs for '{a.study}': create them with 2_shape_morphing/doe.py, "
+                         f"then python3 2_shape_morphing/export_designs.py {a.study}")
     todo = [r["case"] for r in rows if not a.cases or r["case"] in a.cases]
     t0 = time.time()
     summary = []
@@ -40,9 +43,15 @@ def main():
         cdir = case_dir(a.study, case)
         st_file = os.path.join(cdir, "status.json")
         st = json.load(open(st_file)) if os.path.exists(st_file) else {}
+        changed = geometry_changed(a.study, case)
         if os.path.exists(os.path.join(cdir, "result.json")) and st.get("state") == "done":
-            summary.append((case, "done (cached)"))
-            continue
+            if not changed and not a.redo:              # --redo STAGE re-runs done cases from STAGE
+                summary.append((case, "done (cached)"))
+                continue
+            if changed and not (a.rerun_changed or a.redo == "prepare"):
+                summary.append((case, "done, but the exported geometry changed since "
+                                      "(use --rerun-changed or --redo prepare)"))
+                continue
         if st.get("state") == "failed" and not a.retry_failed:
             summary.append((case, f"skipped (failed before in {st.get('stage')}; use --retry-failed)"))
             continue

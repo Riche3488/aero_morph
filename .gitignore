@@ -32,6 +32,7 @@ gen3d/runs/*/*_inspect.png
 3_cfd/**/constant/polyMesh/
 3_cfd/**/constant/extendedFeatureEdgeMesh/
 3_cfd/**/constant/geometry/
+3_cfd/runs/.geometry_hash_cache.json
 # field samples (surfaces / planes) are large; force coefficient histories are kept
 3_cfd/**/postProcessing/*
 !3_cfd/**/postProcessing/force*

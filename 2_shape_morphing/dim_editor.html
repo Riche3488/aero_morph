@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dimension Morph Editor</title>
+<style>
+  :root { --bg:#14171c; --panel:#1d2128; --line:#2c323c; --text:#dfe4ea; --dim:#8b95a3; --acc:#4da3ff; --ok:#3ecf8e; --warn:#f5a524; --bad:#ff5d5d; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font:13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #app { display:flex; height:100%; }
+  #panel { width:340px; min-width:340px; background:var(--panel); border-right:1px solid var(--line); overflow-y:auto; padding:12px 14px; }
+  #view { flex:1; position:relative; }
+  h1 { font-size:15px; margin:0 0 4px; }
+  h2 { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); margin:16px 0 6px; }
+  .var { margin:6px 0 9px; }
+  .var .top { display:flex; align-items:center; gap:6px; }
+  .var .name { flex:1; font-weight:600; }
+  .var .dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:4px; }
+  .var input[type=number] { width:70px; background:#11141a; color:var(--text); border:1px solid var(--line); border-radius:5px; padding:2px 5px; font:inherit; text-align:right; }
+  .var input[type=range] { width:100%; margin:3px 0 0; }
+  .var .desc { color:var(--dim); font-size:11px; }
+  .row { display:flex; align-items:center; gap:6px; margin:4px 0; }
+  button, select { background:#272c35; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:5px 9px; cursor:pointer; font:inherit; }
+  button:hover { border-color:var(--acc); }
+  button.small { padding:1px 7px; }
+  button.prim { background:var(--acc); border-color:var(--acc); color:#06121f; font-weight:600; }
+  button:disabled { opacity:.5; cursor:default; }
+  .seg { display:flex; gap:4px; flex-wrap:wrap; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  td, th { padding:2px 4px; text-align:right; }
+  th { color:var(--dim); font-weight:normal; }
+  td:first-child, th:first-child { text-align:left; }
+  .pos { color:#ff9b6b; } .neg { color:#6bb8ff; }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .bad { color:var(--bad); }
+  #status { position:absolute; left:12px; bottom:10px; background:rgba(20,23,28,.85); padding:6px 10px; border-radius:6px; font-variant-numeric:tabular-nums; }
+  #hint { position:absolute; right:12px; top:10px; background:rgba(20,23,28,.85); padding:6px 10px; border-radius:6px; color:var(--dim); max-width:340px; cursor:pointer; user-select:none; }
+  #hint .more { display:none; margin-top:4px; }
+  #hint.open .more { display:block; }
+  #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:16px; pointer-events:none; }
+  #out { white-space:pre-wrap; font:11px/1.35 ui-monospace, monospace; background:#11141a; border:1px solid var(--line); border-radius:6px; padding:6px; margin-top:6px; max-height:220px; overflow:auto; }
+  kbd { background:#2a2f38; border:1px solid var(--line); border-radius:3px; padding:0 4px; font-size:11px; }
+  #legend { position:absolute; right:12px; bottom:10px; background:rgba(20,23,28,.85); padding:6px 10px; border-radius:6px; font-size:11px; color:var(--dim); }
+  #legend .bar { width:160px; height:8px; border-radius:3px; background:linear-gradient(90deg, #cdcdd1, #8db0fe, #f49a7b, #b40426); margin:3px 0; }
+  #legend.div .bar { background:linear-gradient(90deg, #2166ac, #92c5de, #e6e6e6, #f4a582, #b2182b); }
+  [data-smode].prim { font-weight:600; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="panel">
+    <h1>Dimension Morph Editor</h1>
+    <div style="color:var(--dim)">Press on the car and drag, or use the sliders. Uses the same field as <code>2_shape_morphing/dim_morph.py</code>.</div>
+    <div id="info" style="color:var(--dim);margin-top:6px">loading…</div>
+
+    <div id="setbox" hidden>
+      <h2>Shape set <span id="set-name" style="text-transform:none;letter-spacing:0;color:var(--text)"></span></h2>
+      <select id="set-list" size="6" style="width:100%;font-variant-numeric:tabular-nums"></select>
+      <div class="seg" style="margin-top:5px">
+        <button id="set-prev" title="previous (←)">◀</button><button id="set-next" title="next (→)">▶</button>
+        <span style="flex:1"></span>
+        <button data-smode="morpher">Morpher</button><button data-smode="given">Given</button>
+        <button data-smode="overlay" class="prim">Overlay</button><button data-smode="deviation">Deviation</button>
+      </div>
+      <div id="set-stats" style="color:var(--dim);margin-top:5px">pick an STL: the sliders / handles take its values, and the given STL is shown next to the morpher's shape</div>
+      <div class="seg" style="margin-top:6px">
+        <button id="set-compare">Compare all</button><button id="set-designs">Set → designs</button>
+      </div>
+      <div class="row" style="margin-top:4px"><input id="set-study" placeholder="import study name" style="flex:1;background:#11141a;color:var(--text);border:1px solid var(--line);border-radius:5px;padding:4px 6px;font:inherit"><button id="set-import">Import set as study</button></div>
+    </div>
+
+    <h2>Design variables (mm)</h2>
+    <div id="vars"></div>
+    <div class="seg"><button id="reset">Reset all</button><button id="undo">Undo <kbd>Ctrl+Z</kbd></button></div>
+
+    <h2>Dimensions</h2>
+    <table id="dims"></table>
+
+    <h2>Quality</h2>
+    <div id="qa">–</div>
+
+    <h2>View</h2>
+    <div class="seg">
+      <button data-view="iso">Iso</button><button data-view="side">Side</button><button data-view="top">Top</button>
+      <button data-view="front">Front</button><button data-view="rear">Rear</button>
+    </div>
+    <div class="row"><label><input type="checkbox" id="colors" checked> displacement colour map</label></div>
+    <div class="row"><label><input type="checkbox" id="profiles" checked> centre-line + plan cut (grey = baseline)</label></div>
+    <div class="row"><label><input type="checkbox" id="ghost"> baseline ghost</label></div>
+    <div class="row"><label><input type="checkbox" id="handles" checked> show handles</label></div>
+
+    <h2>Project</h2>
+    <div class="seg">
+      <button id="check">Check in Python</button>
+      <button id="add" class="prim">Add to designs</button>
+      <button id="export" disabled>Export case</button>
+    </div>
+    <div class="row" style="margin-top:6px"><select id="designs" style="flex:1"></select><button id="load">Load</button></div>
+    <div id="out">–</div>
+  </div>
+  <div id="view">
+    <div id="loading">loading model…</div>
+    <div id="hint" title="click for help"><b>Drag a handle</b> or <b>the car surface</b> <span style="color:var(--acc)">· help ▾</span>
+      <div class="more">Grab a coloured handle and drag it along its arrow, or press anywhere on the car and drag: the point follows the mouse through the morph field.
+      The drag direction picks the variable that moves that point that way, e.g.<br>
+      nose forward/back → <span style="color:#ff6b6b">front overhang</span> ·
+      tail → <span style="color:#ffb84d">rear overhang</span><br>
+      rear half / rear wheel along x → <span style="color:#4dd4ff">length</span> ·
+      side panel sideways → <span style="color:#7dff7a">width</span><br>
+      roof end / spoiler up-down → <span style="color:#c58cff">spoiler height</span><br>
+      <kbd>Shift</kbd> = 10 mm steps · <kbd>Ctrl+Z</kbd> undo<br>
+      Background drag or right-drag = rotate, middle-drag = pan, wheel = zoom.</div></div>
+    <div id="legend"><span id="leg-title">|displacement|</span> <div class="bar"></div><span id="leg-min">0</span> <span style="float:right" id="leg-max">0 mm</span></div>
+    <div id="status"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const smooth = t => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
+const NAMES = ["foh", "roh", "length", "width", "spoiler"];
+const LABEL = { foh: "Front overhang", roh: "Rear overhang", length: "Length (wheelbase)", width: "Width", spoiler: "Spoiler height" };
+const COLOR = { foh: 0xff6b6b, roh: 0xffb84d, length: 0x4dd4ff, width: 0x7dff7a, spoiler: 0xc58cff };
+
+let INFO, LM, Z = {}, V0, FZ, IDX, nV, nF;
+let scene, camera, renderer, controls, mesh, geom, ghost, centre, size;
+const S = { foh: 0, roh: 0, length: 0, width: 0, spoiler: 0 };    // current values, mm
+const hist = [];
+let lastCase = null, normalsTimer = null, pending = false;
+
+// ============================================================== field (mirrors dim_morph.py)
+function G(z, x) {                         // np.interp(x, linspace(a, b, n), G, left=0, right=1)
+  if (x <= z.a) return 0; if (x >= z.b) return 1;
+  const t = (x - z.a) / (z.b - z.a) * (z.G.length - 1), i = Math.floor(t);
+  return z.G[i] + (z.G[i + 1] - z.G[i]) * (t - i);
+}
+function field(vals = S) {                 // parameters of a design (values in mm) -> metres
+  const v = {}; NAMES.forEach(k => v[k] = (vals[k] || 0) / 1000);
+  const [xte, zte] = LM.spoiler_te, sp = INFO.spoiler;
+  return { v, s: v.width / LM.body_width, sx: [xte - sp.ramp, xte - 0.10], sz: [zte - sp.dz[0], zte - sp.dz[1]] };
+}
+function D(f, x) { return -f.v.foh * (1 - G(Z.foh, x)) + f.v.length * G(Z.length, x) + f.v.roh * G(Z.roh, x); }
+
+function prep(f) {                         // per-design constants of the field
+  const wf = INFO.wheels.front, wr = INFO.wheels.rear;
+  f.xm = 0.5 * (wf.x + wr.x); f.DF = D(f, wf.x); f.DR = D(f, wr.x); f.yf = wf.y; f.yr = wr.y;
+  return f;
+}
+function dispAt(f, i, u) {                 // displacement of base vertex i -> u[0..2] (dim_morph.DimMorph.displacement)
+  const x = V0[3 * i], y = V0[3 * i + 1], z = V0[3 * i + 2], sp = f.v.spoiler;
+  let ux = D(f, x), uy = y * f.s;
+  let uz = sp ? sp * smooth((x - f.sx[0]) / (f.sx[1] - f.sx[0])) * smooth((z - f.sz[0]) / (f.sz[1] - f.sz[0])) : 0;
+  const fr = FZ[i];
+  if (fr < 1) {                            // tyre zones: rigid with the wheel centre
+    const front = x < f.xm, sg = y >= 0 ? 1 : -1;
+    ux = fr * ux + (1 - fr) * (front ? f.DF : f.DR);
+    uy = fr * uy + (1 - fr) * sg * (front ? f.yf : f.yr) * f.s;
+    uz = fr * uz;
+  }
+  u[0] = ux; u[1] = uy; u[2] = uz;
+}
+function update() {                        // recompute vertex positions (+ colours, profiles, handles)
+  const f = prep(field()), pos = geom.attributes.position.array, col = geom.attributes.color.array;
+  let umax = 0;
+  const mag = new Float32Array(nV), u = [0, 0, 0];
+  for (let i = 0; i < nV; i++) {
+    dispAt(f, i, u);
+    pos[3 * i] = V0[3 * i] + u[0]; pos[3 * i + 1] = V0[3 * i + 1] + u[1]; pos[3 * i + 2] = V0[3 * i + 2] + u[2];
+    const m = Math.sqrt(u[0] * u[0] + u[1] * u[1] + u[2] * u[2]); mag[i] = m; if (m > umax) umax = m;
+  }
+  if ($("colors").checked && umax > 1e-6) {
+    for (let i = 0; i < nV; i++) { const c = cmap(mag[i] / umax); col[3 * i] = c[0]; col[3 * i + 1] = c[1]; col[3 * i + 2] = c[2]; }
+  } else col.fill(0.78);
+  if (!(SETV.mesh && SETV.mode === "deviation")) { $("leg-min").textContent = "0"; $("leg-max").textContent = (umax * 1000).toFixed(0) + " mm"; }
+  geom.attributes.position.needsUpdate = true; geom.attributes.color.needsUpdate = true;
+  scheduleNormals();
+  updateProfiles(); placeHandles(f); panel(f);
+}
+function scheduleNormals() {               // normals are the expensive part: after the drag settles
+  clearTimeout(normalsTimer);
+  normalsTimer = setTimeout(() => { geom.computeVertexNormals(); geom.attributes.normal.needsUpdate = true; geom.computeBoundingSphere(); }, 120);
+}
+function requestUpdate() {                 // coalesce pointer events to one update per frame
+  if (pending) return; pending = true;
+  requestAnimationFrame(() => { pending = false; update(); });
+}
+function cmap(t) {                         // coolwarm-ish, 0 grey-blue -> 1 red
+  const stops = [[0.80, 0.80, 0.82], [0.55, 0.69, 1.0], [0.96, 0.60, 0.48], [0.71, 0.02, 0.15]];
+  t = Math.min(Math.max(t, 0), 1) * (stops.length - 1); const i = Math.min(Math.floor(t), stops.length - 2), u = t - i;
+  return [0, 1, 2].map(k => stops[i][k] + (stops[i + 1][k] - stops[i][k]) * u);
+}
+
+// ============================================================== profiles (cuts that stay on the same triangles)
+let cuts = [];
+function makeCut(axis, value, color) {
+  const segs = [];
+  for (let t = 0; t < nF; t++) {
+    const a = IDX[3 * t], b = IDX[3 * t + 1], c = IDX[3 * t + 2], e = [];
+    for (const [p, q] of [[a, b], [b, c], [c, a]]) {
+      const dp = V0[3 * p + axis] - value, dq = V0[3 * q + axis] - value;
+      if ((dp < 0) !== (dq < 0)) e.push(p, q, dp / (dp - dq));
+    }
+    if (e.length === 6) segs.push(...e);
+  }
+  const n = segs.length / 3, base = new Float32Array(n * 3), cur = new Float32Array(n * 3);
+  for (let k = 0; k < n; k++) {
+    const p = segs[3 * k], q = segs[3 * k + 1], w = segs[3 * k + 2];
+    for (let d = 0; d < 3; d++) base[3 * k + d] = V0[3 * p + d] + (V0[3 * q + d] - V0[3 * p + d]) * w;
+  }
+  const mk = (arr, col, op) => {
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(arr, 3));
+    const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: col, depthTest: false, transparent: true, opacity: op }));
+    l.renderOrder = 5; scene.add(l); return l;
+  };
+  const lb = mk(base, 0x9aa3ad, 0.9), lc = mk(cur, color, 1.0);
+  cuts.push({ segs, n, lb, lc });
+}
+function updateProfiles() {
+  const vis = $("profiles").checked, pos = geom.attributes.position.array;
+  for (const c of cuts) {
+    c.lb.visible = c.lc.visible = vis; if (!vis) continue;
+    const arr = c.lc.geometry.attributes.position.array;
+    for (let k = 0; k < c.n; k++) {
+      const p = c.segs[3 * k], q = c.segs[3 * k + 1], w = c.segs[3 * k + 2];
+      for (let d = 0; d < 3; d++) arr[3 * k + d] = pos[3 * p + d] + (pos[3 * q + d] - pos[3 * p + d]) * w;
+    }
+    c.lc.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
+// ============================================================== handles
+// One grab handle per variable: a sphere with a double arrow along the direction it moves, a
+// larger invisible grab zone and a label with the current value. Handles keep a constant size on
+// screen; the width and length handles sit on the side of the car that faces the camera.
+const H = {};        // name -> {obj, axis, sign, scale, mat, label, ...}
+let P = {}, lastF = null, side = -1;
+const HANDLE_PX = 0.012;                   // handle radius as a fraction of the camera distance
+const SHORT = { foh: "FOH", roh: "ROH", length: "Length", width: "Width", spoiler: "Spoiler" };
+function buildHandles() {
+  // anchor points on the base shape
+  let nose = null, tail = null;
+  for (let i = 0; i < nV; i++) {
+    if (Math.abs(V0[3 * i + 1]) > 0.05) continue;
+    if (!nose || V0[3 * i] < nose[0]) nose = [V0[3 * i], 0, V0[3 * i + 2]];
+    if (!tail || V0[3 * i] > tail[0]) tail = [V0[3 * i], 0, V0[3 * i + 2]];
+  }
+  const wb = LM.wheelbase_zone, xs = 0.5 * (wb[0] + wb[1]);
+  P = { nose, tail, xs, zw: 0.55 };
+  const defs = {                           // sign: value change per handle motion along +axis
+    foh:     { axis: [1, 0, 0], sign: -1, scale: 1 },   // nose forward (-x) = +foh
+    roh:     { axis: [1, 0, 0], sign: 1, scale: 1 },
+    length:  { axis: [1, 0, 0], sign: 1, scale: 1 },
+    width:   { axis: [0, 1, 0], sign: -1, scale: 2 },   // one side moves by width / 2; sign set per side
+    spoiler: { axis: [0, 0, 1], sign: 1, scale: 1 },
+  };
+  for (const k of NAMES) {
+    const g = new THREE.Group(), ax = new THREE.Vector3(...defs[k].axis);
+    const mat = new THREE.MeshBasicMaterial({ color: COLOR[k], depthTest: false, transparent: true, opacity: 0.95 });
+    const ring = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.9 });
+    const add = (m) => { m.userData.handle = k; m.renderOrder = 10; g.add(m); return m; };
+    add(new THREE.Mesh(new THREE.SphereGeometry(1.25, 24, 16), ring)).renderOrder = 9;   // white rim
+    add(new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), mat));
+    const shaft = add(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 4.6, 12), mat));
+    shaft.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), ax);
+    for (const sgn of [1, -1]) {
+      const cone = add(new THREE.Mesh(new THREE.ConeGeometry(0.7, 1.5, 16), mat));
+      cone.position.copy(ax.clone().multiplyScalar(sgn * 2.9));
+      cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), ax.clone().multiplyScalar(sgn));
+    }
+    add(new THREE.Mesh(new THREE.SphereGeometry(2.6, 12, 8),                     // grab zone
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, depthTest: false })));
+    scene.add(g);
+    const label = makeLabel();
+    H[k] = { obj: g, axis: ax, sign: defs[k].sign, scale: defs[k].scale, mat, ring, label, text: "" };
+  }
+  controls.addEventListener("change", () => { if (lastF) placeHandles(lastF); });
+}
+function makeLabel() {
+  const c = document.createElement("canvas"); c.width = 384; c.height = 64;
+  const tex = new THREE.CanvasTexture(c);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, sizeAttenuation: false }));
+  sp.scale.set(0.156, 0.026, 1); sp.center.set(0, 0.5); sp.renderOrder = 13; scene.add(sp);
+  return { sp, c, tex };
+}
+function drawLabel(h, k, active, left) {    // left: label sits left of the handle (box right-aligned)
+  const v = S[k], text = `${SHORT[k]} ${v > 0 ? "+" : ""}${v} mm` + (active ? " ◂" : "");
+  if (text + left === h.text) return; h.text = text + left;
+  const { c, tex } = h.label, x = c.getContext("2d");
+  x.clearRect(0, 0, c.width, c.height);
+  x.font = "600 30px system-ui, Segoe UI, sans-serif";
+  const w = Math.min(x.measureText(text).width + 26, c.width), x0 = left ? c.width - w : 0;
+  x.fillStyle = "rgba(20,23,28,0.85)"; x.beginPath(); x.roundRect ? x.roundRect(x0, 8, w, 48, 10) : x.rect(x0, 8, w, 48); x.fill();
+  x.fillStyle = "#" + COLOR[k].toString(16).padStart(6, "0"); x.fillRect(left ? c.width - 6 : 0, 8, 6, 48);
+  x.fillStyle = v ? "#ffffff" : "#c9d1db"; x.fillText(text, x0 + (left ? 12 : 14), 43);
+  tex.needsUpdate = true;
+}
+function placeHandles(f) {
+  lastF = f;
+  if (!drag) side = camera.position.y >= centre.y ? 1 : -1;     // keep the side fixed while dragging
+  H.width.sign = side;                     // dragging outward = wider, on either side
+  const wr = INFO.wheels.rear, [xte, zte] = LM.spoiler_te, W2 = LM.body_width / 2;
+  const off = 0.09;
+  H.foh.obj.position.set(P.nose[0] + D(f, P.nose[0]) - off, 0, P.nose[2]);
+  H.roh.obj.position.set(P.tail[0] + D(f, P.tail[0]) + off, 0, P.tail[2]);
+  H.length.obj.position.set(wr.x + D(f, wr.x), side * (wr.y * (1 + f.s) + wr.width / 2 + 0.14), wr.z);
+  H.width.obj.position.set(P.xs + D(f, P.xs), side * (W2 * (1 + f.s) + off), P.zw);
+  H.spoiler.obj.position.set(xte + D(f, xte), 0, zte + f.v.spoiler + off);
+  sizeHandles();
+}
+function sizeHandles() {                   // constant screen size + labels next to the handles (every frame)
+  if (!H.foh) return;
+  camera.updateMatrixWorld();              // project() must use the current view, not the last rendered one
+  const show = $("handles").checked;
+  for (const k of NAMES) {
+    const h = H[k], d = camera.position.distanceTo(h.obj.position), sc = d * HANDLE_PX;
+    h.obj.visible = h.label.sp.visible = show;
+    h.obj.scale.setScalar(sc * (hover === k || (drag && drag.k === k && drag.handle) ? 1.3 : 1));
+    // label beside the handle, on the side away from the nearer screen edge
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+    const left = h.obj.position.clone().project(camera).x > 0.3;
+    h.label.sp.center.set(left ? 1 : 0, 0.5);
+    h.label.sp.position.copy(h.obj.position).addScaledVector(right, (left ? -1 : 1) * sc * 3.6);
+    drawLabel(h, k, drag && drag.k === k, left);
+  }
+}
+// ============================================================== interaction: drag the surface
+// The field is linear in each variable: u(x) = sum_k v_k e_k(x). Pressing on the car picks the
+// base vertex under the cursor and its sensitivities e_k (m per mm). The first few pixels of
+// motion choose the variable whose e_k points most along the drag on screen; from then on the
+// value follows the mouse so that the picked point stays under it: dv = (move along e_k) / |e_k|.
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+let drag = null, hover = null, marker, axisLine;
+const MIN_SENS = 0.08;                     // ignore variables that move the point < 0.08 mm per mm
+function setRay(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+}
+function pickHandle(e) {
+  if (!H.foh || !$("handles").checked) return null;
+  setRay(e);
+  const objs = []; NAMES.forEach(k => H[k].obj.traverse(o => { if (o.isMesh) objs.push(o); }));
+  const hit = ray.intersectObjects(objs, false)[0];
+  return hit ? hit.object.userData.handle : null;
+}
+function pickSurface(e) {                  // -> {i: base vertex, p: hit point (current shape)}
+  setRay(e);
+  const hit = ray.intersectObject(mesh, false)[0];
+  if (!hit) return null;
+  const pos = geom.attributes.position.array, f = hit.face;
+  let best = f.a, bd = Infinity;
+  for (const i of [f.a, f.b, f.c]) {
+    const d = (pos[3 * i] - hit.point.x) ** 2 + (pos[3 * i + 1] - hit.point.y) ** 2 + (pos[3 * i + 2] - hit.point.z) ** 2;
+    if (d < bd) { bd = d; best = i; }
+  }
+  return { i: best, p: hit.point.clone() };
+}
+function sensitivities(i) {                // {k: THREE.Vector3 (m per mm)} at base vertex i
+  const out = {}, u = [0, 0, 0];
+  for (const k of NAMES) {
+    const f = prep(field({ [k]: 1 })); dispAt(f, i, u);
+    const e = new THREE.Vector3(u[0], u[1], u[2]);
+    if (e.length() * 1000 >= MIN_SENS) out[k] = e;
+  }
+  return out;
+}
+function toScreen(p) { const q = p.clone().project(camera); const r = renderer.domElement.getBoundingClientRect(); return new THREE.Vector2(q.x * r.width / 2, -q.y * r.height / 2); }
+const PRIORITY = ["spoiler", "foh", "roh", "width", "length"];   // most local first
+function chooseVar(d, mv) {                // variable whose screen direction best matches the mouse move
+  const m = mv.clone().normalize(), emax = Math.max(...Object.values(d.sens).map(e => e.length()));
+  const cand = [], p0 = toScreen(d.p);
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+  const ref = toScreen(d.p.clone().addScaledVector(right, 0.1)).sub(p0).length();   // px of 0.1 m across the view
+  for (const [k, e] of Object.entries(d.sens)) {
+    const sv = toScreen(d.p.clone().add(e.clone().normalize().multiplyScalar(0.1))).sub(p0);
+    // foreshortened below 40 %: the direction points (almost) at the viewer; with perspective it
+    // still shifts a few px sideways off-centre, which must not count as "along the drag"
+    if (sv.length() < 0.4 * ref) continue;
+    const cos = Math.abs(sv.normalize().dot(m));
+    cand.push({ k, cos, mag: e.length() * 1000, score: cos * Math.sqrt(e.length() / emax) });
+  }
+  // several variables move the point the same way (e.g. tail: rear overhang and length):
+  // take the most local one, provided it moves the point at least 0.3 mm per mm
+  const aligned = cand.filter(c => c.cos > 0.7 && c.mag >= 0.3).sort((a, b) => PRIORITY.indexOf(a.k) - PRIORITY.indexOf(b.k));
+  if (aligned.length) return aligned[0].k;
+  const best = cand.filter(c => c.score > 0.35).sort((a, b) => b.score - a.score)[0];
+  return best ? best.k : null;
+}
+function axisParam(p0, a) {                // parameter along line p0 + s a closest to the mouse ray
+  const o = ray.ray.origin, d = ray.ray.direction, w = o.clone().sub(p0);
+  const b = d.dot(a), den = 1 - b * b;
+  if (den < 1e-4) return null;             // looking along the axis
+  return (w.dot(a) - b * w.dot(d)) / den;
+}
+function startVar(d, k) {                  // fix the variable of a surface drag
+  const e = d.sens[k];
+  d.k = k; d.axis = e.clone().normalize(); d.gain = e.length() * 1000;      // mm of point motion per mm of value
+  d.s0 = axisParam(d.p, d.axis); d.v0 = S[k];
+  if (d.s0 === null) { d.k = null; return; }
+  hist.push({ ...S });
+  const L = 0.6;
+  axisLine.geometry.setFromPoints([d.p.clone().addScaledVector(d.axis, -L), d.p.clone().addScaledVector(d.axis, L)]);
+  axisLine.computeLineDistances(); axisLine.material.color.setHex(COLOR[k]); axisLine.visible = true;
+}
+function initInteraction() {
+  const el = renderer.domElement;
+  marker = new THREE.Mesh(new THREE.SphereGeometry(0.018, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false }));
+  marker.renderOrder = 12; marker.visible = false; scene.add(marker);
+  axisLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineDashedMaterial({ color: 0xffffff, depthTest: false, dashSize: 0.03, gapSize: 0.02 }));
+  axisLine.renderOrder = 11; axisLine.visible = false; scene.add(axisLine);
+  el.addEventListener("pointerdown", e => {
+    if (e.button !== 0) return;
+    const hk = pickHandle(e);
+    let d = null;
+    if (hk) {                              // handle: fixed variable, point = handle centre
+      const h = H[hk], p = h.obj.position.clone();
+      d = { p, handle: true, sens: { [hk]: h.axis.clone().multiplyScalar(h.sign / h.scale / 1000) } };
+      startVar(d, hk); if (!d.k) return;
+    } else {
+      const pk = pickSurface(e); if (!pk) return;          // background: orbit
+      d = { p: pk.p, i: pk.i, sens: sensitivities(pk.i), x0: e.clientX, y0: e.clientY, k: null };
+      if (!Object.keys(d.sens).length) { status("this point is not moved by any variable (e.g. front wheel / centre of the cabin side)"); return; }
+      marker.position.copy(pk.p); marker.visible = true;
+      status("drag to choose: " + Object.keys(d.sens).map(k => "dim:" + k).join(" / "));
+    }
+    drag = d; controls.enabled = false; el.setPointerCapture(e.pointerId);
+    if (d.handle) renderer.domElement.style.cursor = "grabbing";
+    e.preventDefault(); e.stopPropagation();
+  }, true);
+  el.addEventListener("pointermove", e => {
+    if (!drag) {
+      const k = pickHandle(e);
+      if (k !== hover) {
+        if (hover) H[hover].ring.color.setHex(0xffffff);
+        hover = k; renderer.domElement.style.cursor = k ? "grab" : "";
+        if (k) { H[k].ring.color.setHex(0xffe066); status(`drag the handle to change dim:${k} (${LABEL[k]})`); }
+        else panel(lastF);
+        sizeHandles();
+      }
+      return;
+    }
+    if (!drag.k) {                         // still choosing the variable
+      const mv = new THREE.Vector2(e.clientX - drag.x0, e.clientY - drag.y0);
+      if (mv.length() < 6) return;
+      const k = chooseVar(drag, mv);
+      if (!k) return;
+      startVar(drag, k); if (!drag.k) return;
+    }
+    setRay(e);
+    const s1 = axisParam(drag.p, drag.axis); if (s1 === null) return;
+    const step = e.shiftKey ? 10 : 1;
+    const v = drag.v0 + (s1 - drag.s0) * 1000 / drag.gain;
+    setVar(drag.k, Math.round(v / step) * step, false);
+    marker.position.copy(drag.p).addScaledVector(drag.axis, (S[drag.k] - drag.v0) * drag.gain / 1000);
+  });
+  window.addEventListener("pointerup", () => {
+    if (!drag) return;
+    drag = null; controls.enabled = true; marker.visible = false; axisLine.visible = false;
+    renderer.domElement.style.cursor = hover ? "grab" : "";
+    requestUpdate();
+  });
+  window.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "z") { undo(); e.preventDefault(); }
+  });
+}
+function setVar(k, v, record = true) {
+  const p = INFO.params[k];
+  v = Math.min(Math.max(v, p.lower), p.upper);
+  if (v === S[k]) return;
+  if (record) hist.push({ ...S });
+  S[k] = v; $("n-" + k).value = v; $("r-" + k).value = v;
+  requestUpdate();
+}
+function undo() { const h = hist.pop(); if (!h) return; Object.assign(S, h); syncInputs(); requestUpdate(); }
+function syncInputs() { NAMES.forEach(k => { $("n-" + k).value = S[k]; $("r-" + k).value = S[k]; }); }
+
+// ============================================================== panel
+function buildPanel() {
+  const box = $("vars");
+  for (const k of NAMES) {
+    const p = INFO.params[k], c = "#" + COLOR[k].toString(16).padStart(6, "0");
+    const d = document.createElement("div"); d.className = "var";
+    d.innerHTML = `<div class="top"><span class="name"><span class="dot" style="background:${c}"></span>${LABEL[k]} <span style="color:var(--dim);font-weight:normal">dim:${k}</span></span>
+      <input type="number" id="n-${k}" value="0" step="1" min="${p.lower}" max="${p.upper}"> <button class="small" id="z-${k}" title="reset">×</button></div>
+      <input type="range" id="r-${k}" min="${p.lower}" max="${p.upper}" step="1" value="0">
+      <div class="desc">${p.desc} · ${p.lower} … ${p.upper} mm</div>`;
+    box.appendChild(d);
+    $("r-" + k).addEventListener("pointerdown", () => hist.push({ ...S }));
+    $("r-" + k).addEventListener("input", e => setVar(k, +e.target.value, false));
+    $("n-" + k).addEventListener("change", e => setVar(k, +e.target.value));
+    $("z-" + k).addEventListener("click", () => setVar(k, 0));
+  }
+  $("reset").addEventListener("click", () => { hist.push({ ...S }); NAMES.forEach(k => S[k] = 0); syncInputs(); requestUpdate(); });
+  $("undo").addEventListener("click", undo);
+  ["colors", "profiles"].forEach(id => $(id).addEventListener("input", requestUpdate));
+  $("ghost").addEventListener("input", () => ghost.visible = $("ghost").checked);
+  $("handles").addEventListener("input", sizeHandles);
+  $("hint").addEventListener("click", () => $("hint").classList.toggle("open"));
+  document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+}
+function panel(f) {
+  const R = INFO.reference_mm, zte = LM.spoiler_te[1] * 1000;
+  const rows = [
+    ["Front overhang", R.FOH, R.FOH + S.foh], ["Wheelbase", R.WB, R.WB + S.length], ["Rear overhang", R.ROH, R.ROH + S.roh],
+    ["Length", R.L, R.L + S.foh + S.length + S.roh], ["Body width", R.W, R.W + S.width],
+    ["Track front", R.trackF, R.trackF * (1 + f.s)], ["Track rear", R.trackR, R.trackR * (1 + f.s)],
+    ["Spoiler edge z", zte, zte + S.spoiler],
+  ];
+  $("dims").innerHTML = "<tr><th></th><th>base</th><th>design</th><th>Δ</th></tr>" + rows.map(([n, b, c]) => {
+    const d = c - b, cls = Math.abs(d) < 0.05 ? "" : d > 0 ? "pos" : "neg";
+    return `<tr><td>${n}</td><td>${b.toFixed(0)}</td><td>${c.toFixed(0)}</td><td class="${cls}">${Math.abs(d) < 0.05 ? "–" : (d > 0 ? "+" : "") + d.toFixed(0)}</td></tr>`;
+  }).join("");
+  // analytic lower bound of det(I + J) (dim_morph.DimMorph.min_detJ_bound)
+  const v = f.v;
+  const dx = 1 + Math.min(0, v.foh * Z.foh.max_slope, v.length * Z.length.max_slope, v.roh * Z.roh.max_slope);
+  const dz = 1 + Math.min(0, v.spoiler) * 1.5 / (f.sz[1] - f.sz[0]);
+  const det = dx * (1 + f.s) * dz, cls = det > 0.2 ? "ok" : det > 0 ? "warn" : "bad";
+  $("qa").innerHTML = `min det J ≥ <b class="${cls}">${det.toFixed(3)}</b> <span style="color:var(--dim)">(export needs &gt; 0.2; 1 = no compression)</span>`;
+  const active = NAMES.filter(k => S[k]).map(k => `dim:${k}=${S[k] > 0 ? "+" : ""}${S[k]}`).join(", ") || "baseline";
+  status((drag && drag.k ? `dragging dim:${drag.k} = ${S[drag.k] > 0 ? "+" : ""}${S[drag.k]} mm   |   ` : "") + active);
+}
+function status(t) { $("status").textContent = t; }
+
+// ============================================================== project (server)
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText); return j;
+}
+const dimsNow = () => Object.fromEntries(NAMES.filter(k => S[k]).map(k => [k, S[k]]));
+function out(t) { $("out").textContent = t; }
+async function refreshDesigns(sel) {
+  const list = await (await fetch("api/designs")).json();
+  $("designs").innerHTML = list.map(d => `<option value="${d.case}" data-dims='${JSON.stringify(d.dims)}'>${d.case}  ${d.label}${d.exported ? "" : "  (not exported)"}</option>`).join("");
+  if (sel) $("designs").value = sel;
+}
+function initProject() {
+  $("check").addEventListener("click", async () => {
+    out("morphing on the server …");
+    try {
+      const r = await post("api/check", { dims: dimsNow() });
+      const m = r.measured_mm, c = r.change_mm;
+      out(`Python check: ${r.status}\n` + Object.keys(m).map(k => `  ${k.padEnd(10)} ${m[k].toFixed(1).padStart(8)}  (${c[k] >= 0 ? "+" : ""}${c[k].toFixed(1)})`).join("\n")
+        + `\n  min det J  ${r.min_detJ}  (bound ${r.min_detJ_bound})\n  flipped triangles ${r.flipped_triangles}  (slivers ${r.flipped_slivers})\n  max displacement ${r.max_displacement_mm} mm`);
+    } catch (e) { out("error: " + e.message); }
+  });
+  $("add").addEventListener("click", async () => {
+    try {
+      const r = await post("api/add_design", { dims: dimsNow() });
+      lastCase = r.case; $("export").disabled = false; $("export").textContent = `Export ${r.case}`;
+      out(r.new ? `added ${r.case}: ${r.label}` : `already in the table as ${r.case}: ${r.label}`);
+      refreshDesigns(r.case);
+    } catch (e) { out("error: " + e.message); }
+  });
+  $("export").addEventListener("click", async () => {
+    const c = $("designs").value || lastCase; if (!c) return;
+    $("export").disabled = true; out(`exporting ${c} (full resolution, ~30 s) …`);
+    try {
+      const r = await post("api/export?case=" + encodeURIComponent(c));
+      const q = r.qa || {};
+      out(`exported ${r.case}: ${r.label}\n  ${r.path}\n  frontal area ${r.frontal_area.toFixed(4)} m²`
+        + (q.status ? `\n  QA ${q.status}: det J ${q.min_detJ.toFixed(3)}, flips ${q.flipped_triangles} (slivers ${q.flipped_slivers ?? 0})` : ""));
+      refreshDesigns(c);
+    } catch (e) { out("error: " + e.message); }
+    $("export").disabled = false;
+  });
+  $("designs").addEventListener("change", () => { $("export").disabled = false; $("export").textContent = `Export ${$("designs").value}`; });
+  $("load").addEventListener("click", () => {
+    const o = $("designs").selectedOptions[0]; if (!o) return;
+    hist.push({ ...S }); const d = JSON.parse(o.dataset.dims || "{}");
+    NAMES.forEach(k => S[k] = d[k] || 0); syncInputs(); requestUpdate();
+    $("export").disabled = false; $("export").textContent = `Export ${o.value}`;
+  });
+}
+
+// ============================================================== shape set (given STLs + values)
+const SETV = { info: null, i: -1, mesh: null, mode: "overlay", stats: null };
+const ICON = { match: "✓", close: "≈", differs: "✗", "frame?": "?" };
+function setLabel(it) {
+  const st = it.stats;
+  return `${it.name.padEnd(10)} ${it.label}` + (st ? `   ${ICON[st.status] || ""} p99 ${st.dev_p99_mm.toFixed(1)} mm` : "") + (it.out_of_range.length ? "  ⚠" : "");
+}
+function setList() {
+  const sel = $("set-list"), cur = SETV.i;
+  sel.innerHTML = SETV.info.items.map(it => `<option value="${it.i}">${setLabel(it)}</option>`).join("");
+  if (cur >= 0) sel.value = cur;
+}
+async function refreshSet() { SETV.info = await (await fetch("api/set")).json(); setList(); }
+async function initSet() {
+  const info = await (await fetch("api/set")).json();
+  if (!info) return;
+  SETV.info = info; $("setbox").hidden = false; $("set-name").textContent = `${info.name} (${info.items.length})`;
+  $("set-study").value = `${INFO.study}_${info.name.replace(/[^A-Za-z0-9_]/g, "_")}`;
+  setList();
+  $("set-list").addEventListener("change", e => selectSet(+e.target.value));
+  $("set-prev").addEventListener("click", () => selectSet(Math.max(0, SETV.i - 1)));
+  $("set-next").addEventListener("click", () => selectSet(Math.min(SETV.info.items.length - 1, SETV.i + 1)));
+  window.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+    if (e.key === "ArrowRight") $("set-next").click(); if (e.key === "ArrowLeft") $("set-prev").click();
+  });
+  document.querySelectorAll("[data-smode]").forEach(b => b.addEventListener("click", () => { SETV.mode = b.dataset.smode; applySetMode(); }));
+  $("set-compare").addEventListener("click", async () => {
+    out(`comparing ${info.items.length} STLs with the morpher (a few s each) …`);
+    try {
+      const r = await post("api/set/compare", {});
+      out("deviation from the morpher at the listed values:\n" + r.map(s => `  ${s.name.padEnd(10)} ${(s.status).padEnd(8)} mean ${s.dev_mean_mm.toFixed(2)}  p99 ${s.dev_p99_mm.toFixed(2)}  max ${s.dev_max_mm.toFixed(2)} mm  shift [${s.translation_mm.join(", ")}] mm`).join("\n"));
+      await refreshSet();
+    } catch (e) { out("error: " + e.message); }
+  });
+  $("set-designs").addEventListener("click", async () => {
+    try {
+      const r = await post("api/set/to_designs", {});
+      out(`set values -> ${INFO.study}/designs.csv (geometry by the morpher):\n` + r.map(x => `  ${x.name} -> ${x.case}${x.new ? "" : " (already there)"}`).join("\n"));
+      refreshDesigns();
+    } catch (e) { out("error: " + e.message); }
+  });
+  $("set-import").addEventListener("click", async () => {
+    out("importing the given STLs as a study (aligning every STL first) …");
+    try {
+      const r = await post("api/set/import", { study: $("set-study").value.trim() });
+      out(`study '${r.study}': ${r.cases} cases, ${r.imported} given STLs as case geometry.` + (r.warnings.length ? "\n" + r.warnings.map(w => "  ! " + w).join("\n") : "") + `\nNext: ${r.next}`);
+      await refreshSet();
+    } catch (e) { out("error: " + e.message); }
+  });
+}
+async function selectSet(i) {
+  const it = SETV.info.items[i]; if (!it) return;
+  SETV.i = i; $("set-list").value = i;
+  hist.push({ ...S });
+  NAMES.forEach(k => { const p = INFO.params[k]; S[k] = Math.min(Math.max(it.dims[k] || 0, p.lower), p.upper); });
+  syncInputs(); requestUpdate();
+  $("set-stats").textContent = `loading ${it.name} and comparing with the morpher …`;
+  const buf = await (await fetch("api/set/mesh.bin?i=" + i)).arrayBuffer();
+  if (SETV.i !== i) return;                // another item was picked meanwhile
+  const dv = new DataView(buf), n = dv.getUint32(0, true), m = dv.getUint32(4, true);
+  const V = new Float32Array(buf, 8, n * 3), F = new Uint32Array(buf, 8 + n * 12, m * 3), dev = new Float32Array(buf, 8 + n * 12 + m * 12, n);
+  if (SETV.mesh) { scene.remove(SETV.mesh); SETV.mesh.geometry.dispose(); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(V, 3)); g.setIndex(new THREE.BufferAttribute(F, 1));
+  g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  g.computeVertexNormals();
+  // polygon offset: where the given STL coincides with the morpher's shape (a match) the overlay
+  // would z-fight; it is drawn slightly towards the viewer instead
+  SETV.mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .55, metalness: .05, side: THREE.DoubleSide,
+                                                                 polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  SETV.dev = dev; scene.add(SETV.mesh);
+  await refreshSet();
+  const st = SETV.info.items[i].stats; SETV.stats = st;
+  const oor = it.out_of_range.length ? `<br><span class="warn">⚠ ${it.out_of_range.join("; ")}: sliders clamped to the morpher range</span>` : "";
+  const cls = { match: "ok", close: "warn", differs: "bad" }[st.status] || "warn";
+  $("set-stats").innerHTML = `<b>${it.name}</b> · ${it.label}<br>vs. morpher: <b class="${cls}">${st.status}</b> · deviation mean ${st.dev_mean_mm.toFixed(2)} / p99 ${st.dev_p99_mm.toFixed(2)} / max ${st.dev_max_mm.toFixed(2)} mm`
+    + `<br>aligned by [${st.translation_mm.join(", ")}] mm${st.units_scale !== 1 ? " · read in mm" : ""} · ${st.triangles.toLocaleString()} tri${st.watertight ? "" : ' · <span class="warn">not watertight</span>'}` + oor;
+  applySetMode();
+}
+function applySetMode() {
+  document.querySelectorAll("[data-smode]").forEach(b => b.classList.toggle("prim", b.dataset.smode === SETV.mode));
+  const sm = SETV.mesh, leg = $("legend");
+  leg.classList.toggle("div", !!sm && SETV.mode === "deviation");
+  $("leg-title").textContent = sm && SETV.mode === "deviation" ? "given STL − morpher (signed)" : "|displacement|";
+  if (!sm) { mesh.visible = true; return; }
+  const mat = sm.material, col = sm.geometry.attributes.color.array, dev = SETV.dev;
+  mesh.visible = SETV.mode === "morpher" || SETV.mode === "overlay";
+  sm.visible = SETV.mode !== "morpher";
+  if (SETV.mode === "deviation") {
+    const lim = Math.max(2, SETV.stats ? SETV.stats.dev_p99_mm : 2);
+    for (let i = 0; i < dev.length; i++) { const c = divmap(dev[i] / lim); col[3 * i] = c[0]; col[3 * i + 1] = c[1]; col[3 * i + 2] = c[2]; }
+    $("leg-min").textContent = `−${lim.toFixed(1)}`; $("leg-max").textContent = `+${lim.toFixed(1)} mm`;
+    Object.assign(mat, { transparent: false, opacity: 1, depthWrite: true });
+  } else if (SETV.mode === "given") {
+    col.fill(0.85); Object.assign(mat, { transparent: false, opacity: 1, depthWrite: true });
+  } else {                                  // overlay: translucent amber shell over the morpher's shape
+    for (let i = 0; i < dev.length; i++) { col[3 * i] = 1.0; col[3 * i + 1] = 0.78; col[3 * i + 2] = 0.35; }
+    Object.assign(mat, { transparent: true, opacity: 0.35, depthWrite: false });
+  }
+  mat.needsUpdate = true; sm.geometry.attributes.color.needsUpdate = true;
+  if (SETV.mode !== "deviation") requestUpdate();
+}
+function divmap(t) {                        // -1 blue .. 0 grey .. +1 red
+  t = Math.max(-1, Math.min(1, t));
+  const a = [0.90, 0.90, 0.90], b = t < 0 ? [0.13, 0.40, 0.67] : [0.70, 0.09, 0.17], u = Math.abs(t);
+  return [0, 1, 2].map(k => a[k] + (b[k] - a[k]) * u);
+}
+
+// ============================================================== three.js
+function init3d() {
+  const view = $("view");
+  scene = new THREE.Scene(); scene.background = new THREE.Color(0x14171c);
+  camera = new THREE.PerspectiveCamera(35, 1, 0.01, 1000); camera.up.set(0, 0, 1);
+  renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(window.devicePixelRatio);
+  view.appendChild(renderer.domElement);
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.ROTATE };
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 0.75));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.65); dl.position.set(-1, -1.5, 2); scene.add(dl);
+  const dl2 = new THREE.DirectionalLight(0xffffff, 0.3); dl2.position.set(1, 1, -0.5); scene.add(dl2);
+  const grid = new THREE.GridHelper(12, 24, 0x2c323c, 0x22272f); grid.rotation.x = Math.PI / 2; grid.position.set(2.3, 0, 0); scene.add(grid);
+  const resize = () => { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); };
+  window.addEventListener("resize", resize); resize();
+  (function loop() { requestAnimationFrame(loop); sizeHandles(); renderer.render(scene, camera); })();
+}
+function setView(k) {
+  const d = { iso: [-0.9, -1.3, 0.55], side: [0, -1, 0.02], top: [0.0001, -0.0001, 1], front: [-1, 0, 0.12], rear: [1, 0, 0.18] }[k];
+  const v = new THREE.Vector3(...d).normalize();
+  controls.target.copy(centre); camera.position.copy(centre).add(v.multiplyScalar(size * 1.25)); controls.update();
+}
+
+async function main() {
+  init3d();
+  INFO = await (await fetch("api/info")).json();
+  LM = INFO.landmarks;
+  for (const k of ["foh", "length", "roh"]) { const z = INFO.zones[k]; Z[k] = { a: z.a, b: z.b, G: Float64Array.from(z.G), max_slope: z.max_slope }; }
+  $("loading").textContent = "loading mesh …";
+  const buf = await (await fetch("api/mesh.bin")).arrayBuffer();
+  const dv = new DataView(buf); nV = dv.getUint32(0, true); nF = dv.getUint32(4, true);
+  V0 = new Float32Array(buf, 8, nV * 3);
+  IDX = new Uint32Array(buf, 8 + nV * 12, nF * 3);
+  FZ = new Float32Array(buf, 8 + nV * 12 + nF * 12, nV);
+  geom = new THREE.BufferGeometry();
+  geom.setAttribute("position", new THREE.BufferAttribute(V0.slice(), 3));
+  geom.setAttribute("color", new THREE.BufferAttribute(new Float32Array(nV * 3).fill(0.78), 3));
+  geom.setIndex(new THREE.BufferAttribute(IDX, 1));
+  geom.computeVertexNormals(); geom.computeBoundingBox();
+  mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .55, metalness: .05, side: THREE.DoubleSide }));
+  scene.add(mesh);
+  const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.BufferAttribute(V0, 3)); gg.setIndex(new THREE.BufferAttribute(IDX, 1));
+  ghost = new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide }));
+  ghost.visible = false; ghost.renderOrder = 3; scene.add(ghost);
+  const bb = geom.boundingBox; centre = bb.getCenter(new THREE.Vector3()); size = bb.getSize(new THREE.Vector3()).length();
+  makeCut(1, 0.003, 0xff8c42);             // centre line (just off the symmetry seam)
+  makeCut(2, 0.55, 0x4dd4ff);              // plan cut at bumper / sill level
+  buildHandles(); buildPanel(); initInteraction(); initProject();
+  $("info").innerHTML = `study <b>${INFO.study}</b> · ${INFO.name}<br>${INFO.base}<br>preview ${nF.toLocaleString()} of ${INFO.full_triangles.toLocaleString()} triangles (display only; <i>Export case</i> builds the full mesh) · spoiler edge at x=${LM.spoiler_te[0].toFixed(3)}, z=${LM.spoiler_te[1].toFixed(3)} m`;
+  $("loading").style.display = "none";
+  setView("iso"); update(); refreshDesigns(); initSet();
+}
+main().catch(e => { $("loading").textContent = "error: " + e.message; console.error(e); });
+</script>
+</body>
+</html>

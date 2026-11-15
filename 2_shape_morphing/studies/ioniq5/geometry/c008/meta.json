@@ -1,0 +1,171 @@
+{
+  "case": "c008",
+  "study": "ioniq5",
+  "label": "dim:width=+60mm",
+  "params": {
+    "dim:foh": 0.0,
+    "dim:roh": 0.0,
+    "dim:length": 0.0,
+    "dim:width": 60.0,
+    "dim:spoiler": 0.0
+  },
+  "variables": {
+    "dim:foh": {
+      "baseline": 0.0,
+      "lower": -100.0,
+      "upper": 100.0,
+      "unit": "mm"
+    },
+    "dim:roh": {
+      "baseline": 0.0,
+      "lower": -100.0,
+      "upper": 100.0,
+      "unit": "mm"
+    },
+    "dim:length": {
+      "baseline": 0.0,
+      "lower": -150.0,
+      "upper": 150.0,
+      "unit": "mm"
+    },
+    "dim:width": {
+      "baseline": 0.0,
+      "lower": -60.0,
+      "upper": 60.0,
+      "unit": "mm"
+    },
+    "dim:spoiler": {
+      "baseline": 0.0,
+      "lower": -30.0,
+      "upper": 50.0,
+      "unit": "mm"
+    }
+  },
+  "vehicle": "Hyundai IONIQ 5 (gen3d, fixed)",
+  "base": "gen3d/output/ioniq5_fixed.stl",
+  "reference_cd": 0.288,
+  "units": "m",
+  "frontal_area": 2.654016,
+  "parts": {
+    "body": {
+      "triangles": 999994,
+      "volume_m3": 9.029275,
+      "regions": {
+        "body": 712168,
+        "wheelFront": 146830,
+        "wheelRear": 140996
+      }
+    }
+  },
+  "cfd_layout": "fused_regions",
+  "wheels": {
+    "front": {
+      "x": 0.8287,
+      "y": 0.8290664003331856,
+      "z": 0.36,
+      "r": 0.365,
+      "width": 0.235
+    },
+    "rear": {
+      "x": 3.8663,
+      "y": 0.818748212401223,
+      "z": 0.36,
+      "r": 0.365,
+      "width": 0.235
+    }
+  },
+  "bbox": [
+    [
+      0.0,
+      -1.004,
+      -0.005
+    ],
+    [
+      4.635,
+      1.004,
+      1.6176
+    ]
+  ],
+  "drag_modes": {},
+  "dims_mm": {
+    "width": 60.0
+  },
+  "qa": {
+    "dims": {
+      "max_displacement": 0.030959645633824362,
+      "moved_vertices_pct": 99.02979805959612,
+      "min_detJ": 1.0318187931962484,
+      "min_detJ_bound": 1.0318187931962484,
+      "flipped_triangles": 0,
+      "flipped_slivers": 0,
+      "max_normal_rotation_deg_regular": 4.511013090721692,
+      "area_ratio_min": 0.9697926653870778,
+      "area_ratio_max": 1.1605763165198788,
+      "status": "OK",
+      "landmarks": {
+        "x_nose": 0.0,
+        "x_tail": 4.635,
+        "body_width": 1.8857,
+        "foh_zone": [
+          0.12,
+          0.4037
+        ],
+        "wheelbase_zone": [
+          1.2537,
+          3.4413
+        ],
+        "roh_zone": [
+          4.2913,
+          4.515
+        ],
+        "spoiler_te": [
+          4.2045,
+          1.476
+        ],
+        "spoiler_drop": 0.0859
+      }
+    }
+  },
+  "signature": {
+    "params": {
+      "dim:foh": 0.0,
+      "dim:roh": 0.0,
+      "dim:length": 0.0,
+      "dim:width": 60.0,
+      "dim:spoiler": 0.0
+    },
+    "res": 0.5,
+    "modes_hash": "da39a3ee5e6b",
+    "base": {
+      "type": "stl",
+      "path": "gen3d/output/ioniq5_fixed.stl",
+      "name": "Hyundai IONIQ 5 (gen3d, fixed)",
+      "units": "m",
+      "z_offset": -0.005,
+      "wheels": {
+        "front": {
+          "x": 0.8287,
+          "y": 0.8035,
+          "z": 0.365,
+          "r": 0.365,
+          "width": 0.235
+        },
+        "rear": {
+          "x": 3.8663,
+          "y": 0.7935,
+          "z": 0.365,
+          "r": 0.365,
+          "width": 0.235
+        }
+      },
+      "split_wheels": true,
+      "reference_cd": 0.288,
+      "reference_cd_note": "Hyundai published Cd for IONIQ 5",
+      "wheels_note": "axles = centres of the flat tyre contact patches of ioniq5_fixed.stl; r from the smooth_refine tyre fit"
+    },
+    "code_hash": "e489815d629e",
+    "base_mtime": 1794721077.4808455,
+    "dim_morph_hash": "fefec462c653"
+  },
+  "status": "ok"
+}
