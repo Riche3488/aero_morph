@@ -6,7 +6,7 @@
 #   bash test_ioniq5/run_variants.sh c003 c004  # a subset
 set -euo pipefail
 cd "$(dirname "$0")/.."
-source /opt/openfoam12/etc/bashrc
+set +eu; source /opt/openfoam12/etc/bashrc; set -eu   # the OpenFOAM env script is not -e/-u clean
 CASES=("${@:-c001 c002 c003 c004 c005 c006 c007 c008 c009 c010}")
 python3 3_cfd/run_study.py ioniq5 --cases ${CASES[@]} 2>&1 | tee -a 3_cfd/runs/ioniq5/run_study_solve.log
 for c in ${CASES[@]}; do
