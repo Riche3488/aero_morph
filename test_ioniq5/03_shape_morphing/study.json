@@ -1,0 +1,29 @@
+{
+  "base": {
+    "type": "stl",
+    "path": "gen3d/output/ioniq5_fixed.stl",
+    "name": "Hyundai IONIQ 5 (gen3d, fixed)",
+    "units": "m",
+    "z_offset": -0.005,
+    "wheels": {
+      "front": {
+        "x": 0.8287,
+        "y": 0.8035,
+        "z": 0.365,
+        "r": 0.365,
+        "width": 0.235
+      },
+      "rear": {
+        "x": 3.8663,
+        "y": 0.7935,
+        "z": 0.365,
+        "r": 0.365,
+        "width": 0.235
+      }
+    },
+    "split_wheels": true,
+    "reference_cd": 0.288,
+    "reference_cd_note": "Hyundai published Cd for IONIQ 5",
+    "wheels_note": "axles = centres of the flat tyre contact patches of ioniq5_fixed.stl; r from the smooth_refine tyre fit"
+  }
+}

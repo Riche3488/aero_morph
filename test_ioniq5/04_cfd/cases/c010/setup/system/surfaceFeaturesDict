@@ -1,0 +1,11 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeaturesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surfaces ("body.stl");
+includedAngle   150;
+subsetFeatures { nonManifoldEdges no; openEdges yes; }

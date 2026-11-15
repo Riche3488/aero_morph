@@ -1,0 +1,34 @@
+{
+  "state": "done",
+  "error": null,
+  "prepare": {
+    "frontal_area": 2.5739199999999998,
+    "patches": [
+      "body",
+      "wheelFront",
+      "wheelRear"
+    ],
+    "seconds": 0.4
+  },
+  "mesh": {
+    "cells": 1586243,
+    "failed_checks": 1,
+    "layer_coverage_pct": {
+      "body": 98.9
+    },
+    "seconds": 83.8
+  },
+  "init": {
+    "init": "potential",
+    "seconds": 2.6
+  },
+  "solve": {
+    "seconds": 1830.1
+  },
+  "post": {
+    "Cd": 0.308093739188,
+    "CdA": 0.7930086371707769,
+    "seconds": 4.6
+  },
+  "wall_seconds": 1921.6
+}

@@ -1,0 +1,21 @@
+{
+  "state": "stopped after mesh",
+  "error": null,
+  "prepare": {
+    "frontal_area": 2.5739199999999998,
+    "patches": [
+      "body",
+      "wheelFront",
+      "wheelRear"
+    ],
+    "seconds": 0.4
+  },
+  "mesh": {
+    "cells": 1576911,
+    "failed_checks": 1,
+    "layer_coverage_pct": {
+      "body": 98.9
+    },
+    "seconds": 90.9
+  }
+}

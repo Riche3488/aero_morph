@@ -1,0 +1,69 @@
+
+=== [1/10]  elapsed 0.0 min
+[ioniq5/c001] dim:foh=-100mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 91s  cells=1576911, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== [2/10]  elapsed 1.5 min
+[ioniq5/c002] dim:foh=+100mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 90s  cells=1597022, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== [3/10]  elapsed 3.0 min
+[ioniq5/c003] dim:roh=-100mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 88s  cells=1581122, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== [4/10]  elapsed 4.5 min
+[ioniq5/c004] dim:roh=+100mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 91s  cells=1593395, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== [5/10]  elapsed 6.0 min
+[ioniq5/c005] dim:length=-150mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 93s  cells=1571671, failed_checks=1, layer_coverage_pct={'body': 98.8}
+
+=== [6/10]  elapsed 7.6 min
+[ioniq5/c006] dim:length=+150mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 95s  cells=1600086, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== [7/10]  elapsed 9.2 min
+[ioniq5/c007] dim:width=-60mm
+  prepare  ... 0s  frontal_area=2.495, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 91s  cells=1573427, failed_checks=1, layer_coverage_pct={'body': 98.8}
+
+=== [8/10]  elapsed 10.7 min
+[ioniq5/c008] dim:width=+60mm
+  prepare  ... 0s  frontal_area=2.654, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 96s  cells=1599333, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== [9/10]  elapsed 12.3 min
+[ioniq5/c009] dim:spoiler=-30mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 86s  cells=1585863, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== [10/10]  elapsed 13.7 min
+[ioniq5/c010] dim:spoiler=+50mm
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 90s  cells=1587301, failed_checks=1, layer_coverage_pct={'body': 98.9}
+
+=== batch summary
+  c001: ok
+  c002: ok
+  c003: ok
+  c004: ok
+  c005: ok
+  c006: ok
+  c007: ok
+  c008: ok
+  c009: ok
+  c010: ok
+total 15.2 min
+
+case        Cd     ΔCd     CdA   ΔCdA%      Cl  design
+c000    0.3081   +0.0c  0.7930  +0.00%  -0.074  baseline
+
+results: /home/riche3488/aero_project/3_cfd/runs/ioniq5/results.csv
+report : /home/riche3488/aero_project/3_cfd/runs/ioniq5/report/

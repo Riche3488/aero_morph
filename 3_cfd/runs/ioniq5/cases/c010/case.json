@@ -1,0 +1,75 @@
+{
+  "case": "c010",
+  "study": "ioniq5",
+  "label": "dim:spoiler=+50mm",
+  "params": {
+    "dim:foh": 0.0,
+    "dim:roh": 0.0,
+    "dim:length": 0.0,
+    "dim:width": 0.0,
+    "dim:spoiler": 50.0
+  },
+  "variables": {
+    "dim:foh": {
+      "baseline": 0.0,
+      "lower": -100.0,
+      "upper": 100.0,
+      "unit": "mm"
+    },
+    "dim:roh": {
+      "baseline": 0.0,
+      "lower": -100.0,
+      "upper": 100.0,
+      "unit": "mm"
+    },
+    "dim:length": {
+      "baseline": 0.0,
+      "lower": -150.0,
+      "upper": 150.0,
+      "unit": "mm"
+    },
+    "dim:width": {
+      "baseline": 0.0,
+      "lower": -60.0,
+      "upper": 60.0,
+      "unit": "mm"
+    },
+    "dim:spoiler": {
+      "baseline": 0.0,
+      "lower": -30.0,
+      "upper": 50.0,
+      "unit": "mm"
+    }
+  },
+  "frontal_area": 2.5739199999999998,
+  "geometry_source": "2_shape_morphing/studies/ioniq5/geometry/c010",
+  "geometry_hash": "58d3dc1f2d59f74f",
+  "base": "gen3d/output/ioniq5_fixed.stl",
+  "vehicle": "Hyundai IONIQ 5 (gen3d, fixed)",
+  "cfd_layout": "fused_regions",
+  "patches": [
+    "body",
+    "wheelFront",
+    "wheelRear"
+  ],
+  "wheels": {
+    "front": {
+      "x": 0.8287,
+      "y": 0.8035,
+      "z": 0.36,
+      "r": 0.365,
+      "width": 0.235
+    },
+    "rear": {
+      "x": 3.8663,
+      "y": 0.7935,
+      "z": 0.36,
+      "r": 0.365,
+      "width": 0.235
+    }
+  },
+  "reference_cd": 0.288,
+  "n_iter": 800,
+  "n_avg": 300,
+  "init": "map"
+}

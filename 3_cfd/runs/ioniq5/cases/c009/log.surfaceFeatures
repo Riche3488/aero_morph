@@ -1,0 +1,73 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 12-86e126a7bc4d
+Exec   : surfaceFeatures
+Date   : Nov 15 2026
+Time   : 18:37:49
+Host   : "KWLeeWS"
+PID    : 341287
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c009
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c009/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+Reading "surfaceFeaturesDict"
+
+Surface            : "body.stl"
+
+
+Feature line extraction is only valid on closed manifold surfaces.
+Statistics:
+Triangles    : 999994
+Vertices     : 499999
+Bounding Box : (0 -0.97299868 -0.0049999999) (4.6350002 0.97299868 1.617589)
+
+
+Constructing feature set from included angle 2.6179939
+Selecting edges purely based on geometric tests: no
+Removing all non-manifold edges (edges with > 2 connected faces) unless they cross multiple regions
+
+Initial feature set:
+    feature points : 2218
+    feature edges  : 3250
+    of which
+        region edges   : 3106
+        external edges : 78
+        internal edges : 66
+
+
+Final feature set:
+points      : 3264
+edges       : 3250
+boundingBox : (0.066550776 -0.91272068 0.20343579) (4.612524 0.91272068 1.5980819)
+point classification :
+    convex feature points          :        2
+    concave feature points         :        8
+    mixed feature points           :     2208
+    other (non-feature) points     :     1046
+edge classification :
+    external (convex angle) edges  :       94
+    internal (concave angle) edges :      288
+    flat region edges              :     2868
+    open edges                     :        0
+    multiply connected edges       :        0
+
+Writing extendedFeatureEdgeMesh to "constant/extendedFeatureEdgeMesh/body.extendedFeatureEdgeMesh"
+
+Writing featureEdgeMesh to "constant/geometry/body.eMesh"
+
+ExecutionTime = 2.043616 s  ClockTime = 2 s
+
+End
+

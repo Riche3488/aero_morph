@@ -1,0 +1,14 @@
+{
+  "Cd_pressure": 0.28976594930015714,
+  "Cd_friction": 0.011220266504551843,
+  "Cd_surface_total": 0.30098621580470897,
+  "Cl_surface": -0.03342851475559822,
+  "Cd_by_part": {
+    "body": 0.24919958410305845,
+    "wheelFront": 0.03223024387745671,
+    "wheelRear": 0.019556387824193708
+  },
+  "Cd_result_mean": 0.308093739188,
+  "Cd_solver_same_iteration": 0.315460074,
+  "note": "surface integral of the final-iteration sample; result.json Cd is the window mean"
+}

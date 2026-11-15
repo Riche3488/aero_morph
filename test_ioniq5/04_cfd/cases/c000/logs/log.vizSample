@@ -1,0 +1,95 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 12-86e126a7bc4d
+Exec   : foamPostProcess -parallel -latestTime -dict system/vizFunctions
+Date   : Nov 15 2026
+Time   : 18:26:52
+Host   : "KWLeeWS"
+PID    : 307859
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c000
+nProcs : 8
+Slaves : 
+7
+(
+"KWLeeWS.307860"
+"KWLeeWS.307861"
+"KWLeeWS.307862"
+"KWLeeWS.307863"
+"KWLeeWS.307864"
+"KWLeeWS.307865"
+"KWLeeWS.307866"
+)
+
+Pstream initialised with:
+    floatTransfer      : false
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c000/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+Create mesh for time = 1500
+
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c000/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+Reading surface description:
+    cutPlane
+
+Reading surface description:
+    cutPlane
+
+Reading surface description:
+    cutPlane
+
+Reading surface description:
+    cutPlane
+
+Reading surface description:
+    cutPlane
+
+Reading surface description:
+    cutPlane
+
+streamlines vizStreamCentre:
+    automatic track length specified through number of sub cycles : 5
+
+streamlines vizStreamSide:
+    automatic track length specified through number of sub cycles : 5
+
+streamlines vizStreamWake:
+    automatic track length specified through number of sub cycles : 5
+
+Time = 1500s
+
+Reading fields:
+    volScalarFields: p--> FOAM Warning : 
+    From function const Foam::HashTable<Foam::List<int>, Foam::word>& Foam::polyBoundaryMesh::groupPatchIndices() const
+    in file meshes/polyMesh/polyBoundaryMesh/polyBoundaryMesh.C at line 506
+    Removing patchGroup 'symmetry' which clashes with patch 3 of the same name.
+
+    volVectorFields: U
+
+Executing functionObjects
+streamlines vizStreamCentre write:
+    Seeded 36 particles
+    Sampled 123301 locations
+streamlines vizStreamSide write:
+    Seeded 36 particles
+    Sampled 117506 locations
+streamlines vizStreamWake write:
+    Seeded 40 particles
+    Sampled 233132 locations
+
+End
+
+Finalising parallel run

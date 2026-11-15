@@ -1,0 +1,116 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 12-86e126a7bc4d
+Exec   : checkMesh -parallel
+Date   : Nov 15 2026
+Time   : 18:39:11
+Host   : "KWLeeWS"
+PID    : 344326
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c009
+nProcs : 8
+Slaves : 
+7
+(
+"KWLeeWS.344327"
+"KWLeeWS.344328"
+"KWLeeWS.344329"
+"KWLeeWS.344330"
+"KWLeeWS.344331"
+"KWLeeWS.344332"
+"KWLeeWS.344333"
+)
+
+Pstream initialised with:
+    floatTransfer      : false
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c009/system/functions/forceCoeffsIncompressible/forceCoeffsIncompressible"
+Create polyMesh for time = 0
+
+Time = 0s
+
+Mesh stats
+    points:           1744696
+    faces:            4908896
+    internal faces:   4721448
+    cells:            1585863
+    faces per cell:   6.0726204
+    boundary patches: 12
+    point zones:      0
+    face zones:       0
+    cell zones:       0
+
+Overall number of cells of each type:
+    hexahedra:     1519308
+    prisms:        7817
+    wedges:        0
+    pyramids:      0
+    tet wedges:    147
+    tetrahedra:    5
+    polyhedra:     58586
+    Breakdown of polyhedra by number of faces:
+        faces   number of cells
+            4   4158
+            5   3187
+            6   6780
+            7   9138
+            8   1961
+            9   27602
+           10   18
+           11   1
+           12   4301
+           15   1413
+           18   27
+
+Checking topology...
+    Boundary definition OK.
+    Cell to face addressing OK.
+    Point usage OK.
+    Upper triangular ordering OK.
+    Face vertices OK.
+    Number of regions: 1 (OK).
+
+Checking basic patch addressing...
+                   Patch    Faces   Points
+                   inlet      612      696
+                  outlet     1365     1459
+              freestream     2240     2378
+                symmetry    33555    35368
+                  ground    36548    38204
+                    body    51756    56243
+              wheelFront     4049     4878
+               wheelRear     4161     4849
+
+Checking geometry...
+    Overall domain bounding box (-10 0 0) (30 6.0000011 8)
+    Mesh has 3 geometric (non-empty/wedge) directions (1 1 1)
+    Mesh has 3 solution (non-empty) directions (1 1 1)
+    Max cell openness = 3.9588362e-16 OK.
+    Max aspect ratio = 9.8048642 OK.
+    Minimum face area = 4.1931841e-07. Maximum face area = 0.25008139.  Face area magnitudes OK.
+    Min volume = 4.7830626e-08. Max volume = 0.12502943.  Total volume = 1915.6282.  Cell volumes OK.
+    Mesh non-orthogonality Max: 63.225103 average: 5.6700661
+    Non-orthogonality check OK.
+    Face pyramids OK.
+ ***Max skewness = 5.4336589, 47 highly skew faces detected which may impair the quality of the results
+    Coupled point location match (average 0) OK.
+
+Failed 1 mesh checks.
+
+End
+
+Finalising parallel run

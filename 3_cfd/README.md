@@ -9,6 +9,7 @@ python3 2_shape_morphing/export_designs.py rear  # stage 2: export first (CFD ne
 python3 3_cfd/run_study.py rear --clean          # all exported designs (studies/rear/geometry/index.json)
 python3 3_cfd/run_case.py  rear c003 [--stop-after mesh] [--redo solve]
 python3 3_cfd/compare.py   rear                  # also run automatically at the end of run_study
+python3 3_cfd/visualize_case.py rear c003         # detailed plots + interactive 3-D viewer -> cases/c003/results/viz/
 ```
 Works for both kinds of study base. IONIQ 5 studies get separate wheel and mirror STLs. STL-based studies such as
 IONIQ 6 get one multi-region STL whose wheel regions become the `wheelFront`/`wheelRear` patches. Wheel centres,

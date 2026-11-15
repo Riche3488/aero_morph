@@ -1,0 +1,26 @@
+{
+  "components": 7,
+  "sliver_faces_removed": 935,
+  "faces": 300000,
+  "extents_mm": [
+    4635,
+    1982,
+    1643
+  ],
+  "wheels": {
+    "FL": 1980,
+    "FR": 1902,
+    "RL": 1707,
+    "RR": 135
+  },
+  "wheel_ratio": 0.068,
+  "mirror_error_mm": 22.54,
+  "score": -0.383,
+  "tag": "fl+rr_s3",
+  "images": [
+    "fl",
+    "rr"
+  ],
+  "seed": 3,
+  "mode": "stochastic"
+}

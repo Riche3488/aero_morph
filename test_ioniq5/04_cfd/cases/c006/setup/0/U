@@ -1,0 +1,40 @@
+FoamFile
+{
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+Uinlet          27.7778;            // 100 km/h
+wheelRadius     0.36;           // wheel-centre height = loaded radius (filled per case)
+xFront          0.8287;
+xRear           4.0163;
+yFront          0.8035;
+yRear           0.7935;
+wheelSpeed      #calc "$Uinlet / $wheelRadius";
+
+dimensions      [0 1 -1 0 0 0 0];
+internalField   uniform ($Uinlet 0 0);
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+    inlet       { type fixedValue; value uniform ($Uinlet 0 0); }
+    outlet      { type inletOutlet; inletValue uniform (0 0 0); value $internalField; }
+    freestream  { type freestreamVelocity; freestreamValue uniform ($Uinlet 0 0); }
+    ground      { type fixedValue; value uniform ($Uinlet 0 0); }   // moving belt
+    "(body|mirror)" { type noSlip; }
+    wheelFront
+    {
+        type    rotatingWallVelocity;
+        origin  ($xFront $yFront $wheelRadius);
+        axis    (0 -1 0);
+        omega   $wheelSpeed;
+    }
+    wheelRear
+    {
+        $wheelFront;
+        origin  ($xRear $yRear $wheelRadius);
+    }
+}

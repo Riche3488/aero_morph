@@ -1,0 +1,75 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 12-86e126a7bc4d
+Exec   : potentialFoam -parallel
+Date   : Nov 15 2026
+Time   : 17:54:09
+Host   : "KWLeeWS"
+PID    : 282460
+I/O    : uncollated
+Case   : /home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c000
+nProcs : 8
+Slaves : 
+7
+(
+"KWLeeWS.282461"
+"KWLeeWS.282462"
+"KWLeeWS.282463"
+"KWLeeWS.282464"
+"KWLeeWS.282465"
+"KWLeeWS.282466"
+"KWLeeWS.282467"
+)
+
+Pstream initialised with:
+    floatTransfer      : false
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0
+
+Reading velocity field U
+
+Expanding #calc at line 15 in file "/home/riche3488/aero_project/3_cfd/runs/ioniq5/cases/c000/processor0/0/U"
+--> FOAM Warning : 
+    From function const Foam::HashTable<Foam::List<int>, Foam::word>& Foam::polyBoundaryMesh::groupPatchIndices() const
+    in file meshes/polyMesh/polyBoundaryMesh/polyBoundaryMesh.C at line 506
+    Removing patchGroup 'symmetry' which clashes with patch 3 of the same name.
+Constructing pressure field p
+
+Constructing velocity potential field Phi
+
+No MRF models present
+
+
+Calculating potential flow
+GAMG:  Solving for Phi, Initial residual = 1, Final residual = 0.075399828, No Iterations 3
+GAMG:  Solving for Phi, Initial residual = 0.022593446, Final residual = 0.0021101041, No Iterations 2
+GAMG:  Solving for Phi, Initial residual = 0.0040101316, Final residual = 0.00025483227, No Iterations 4
+GAMG:  Solving for Phi, Initial residual = 0.00090716078, Final residual = 6.6241745e-05, No Iterations 3
+GAMG:  Solving for Phi, Initial residual = 0.0001427652, Final residual = 1.0700629e-05, No Iterations 4
+GAMG:  Solving for Phi, Initial residual = 2.9715002e-05, Final residual = 2.0849574e-06, No Iterations 4
+GAMG:  Solving for Phi, Initial residual = 5.6358559e-06, Final residual = 9.8225348e-07, No Iterations 2
+GAMG:  Solving for Phi, Initial residual = 1.4873458e-06, Final residual = 7.8918512e-07, No Iterations 1
+GAMG:  Solving for Phi, Initial residual = 9.4770407e-07, Final residual = 9.4770407e-07, No Iterations 0
+GAMG:  Solving for Phi, Initial residual = 9.4770407e-07, Final residual = 9.4770407e-07, No Iterations 0
+GAMG:  Solving for Phi, Initial residual = 9.4770407e-07, Final residual = 9.4770407e-07, No Iterations 0
+Continuity error = 9.6686454e-06
+Interpolated velocity error = 0.00036645237
+ExecutionTime = 1.399984 s  ClockTime = 1 s
+
+End
+
+Finalising parallel run

@@ -1,0 +1,6 @@
+[ioniq5/c000] baseline
+  prepare  ... 0s  frontal_area=2.574, patches=['body', 'wheelFront', 'wheelRear']
+  mesh     ... 84s  cells=1586243, failed_checks=1, layer_coverage_pct={'body': 98.9}
+  init     ... 3s  init=potential
+  solve    ... 1830s  
+  post     ... 5s  Cd=0.3081, CdA=0.793

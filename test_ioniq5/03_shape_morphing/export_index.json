@@ -1,0 +1,51 @@
+{
+  "study": "ioniq5",
+  "base": "gen3d/output/ioniq5_fixed.stl",
+  "cases": [
+    {
+      "case": "c000",
+      "label": "baseline"
+    },
+    {
+      "case": "c001",
+      "label": "dim:foh=-100mm"
+    },
+    {
+      "case": "c002",
+      "label": "dim:foh=+100mm"
+    },
+    {
+      "case": "c003",
+      "label": "dim:roh=-100mm"
+    },
+    {
+      "case": "c004",
+      "label": "dim:roh=+100mm"
+    },
+    {
+      "case": "c005",
+      "label": "dim:length=-150mm"
+    },
+    {
+      "case": "c006",
+      "label": "dim:length=+150mm"
+    },
+    {
+      "case": "c007",
+      "label": "dim:width=-60mm"
+    },
+    {
+      "case": "c008",
+      "label": "dim:width=+60mm"
+    },
+    {
+      "case": "c009",
+      "label": "dim:spoiler=-30mm"
+    },
+    {
+      "case": "c010",
+      "label": "dim:spoiler=+50mm"
+    }
+  ],
+  "not_exported": []
+}

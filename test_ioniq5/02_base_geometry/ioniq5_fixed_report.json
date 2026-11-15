@@ -1,0 +1,148 @@
+{
+  "symmetry": {
+    "yaw_deg": -0.000538337431149782,
+    "roll_deg": 0.000953899785776698,
+    "dy_mm": 0.04448135682059062,
+    "mirror_error_before_mm": 6.453813000585307,
+    "mirror_error_after_mm": 6.384837329082497
+  },
+  "axle_warp": {
+    "front_overhang_scale": 0.8568340099270522,
+    "wheelbase_scale": 1.0479017091929104,
+    "rear_overhang_scale": 0.8450598173074916
+  },
+  "pre_fit": {
+    "width_scale": 0.9961155640241444,
+    "height_scale": 0.9718367000343969
+  },
+  "tyre_contact_x_m": [
+    0.9252,
+    3.8366
+  ],
+  "fixes": {
+    "voids_filled_voxels": 0,
+    "tyres": {
+      "tyres": [
+        {
+          "axle_x": 0.8514,
+          "centre_z": 0.3872,
+          "radius": 0.3599,
+          "fit_residual_p90_mm": 1.71,
+          "blob_voxels_removed": 7820
+        },
+        {
+          "axle_x": 3.8425,
+          "centre_z": 0.3861,
+          "radius": 0.3594,
+          "fit_residual_p90_mm": 2.07,
+          "blob_voxels_removed": 7910
+        }
+      ],
+      "ground_z": 0.0352,
+      "contact_patch_length_mm": 152
+    },
+    "sills": {
+      "x_range": [
+        1.331,
+        3.363
+      ],
+      "mean_change_mm": 3.38
+    },
+    "underbody": {
+      "floor_z": 0.19,
+      "footprint_m2": 6.32,
+      "mean_change_mm": 2.4,
+      "max_change_mm": 63
+    },
+    "plates": {
+      "front": {
+        "area_m2": 0.119,
+        "mean_change_mm": 21.0,
+        "max_change_mm": 41.4
+      },
+      "rear": {
+        "area_m2": 0.099,
+        "mean_change_mm": 29.0,
+        "max_change_mm": 52.5
+      }
+    },
+    "body_closing": {
+      "radius_mm": 40.0,
+      "filled_litres": 1.23,
+      "max_depth_mm": 5.2
+    },
+    "ledges": {
+      "top": {
+        "area_m2": 0.494,
+        "max_lift_mm": 20.9
+      },
+      "front": {
+        "area_m2": 0.016,
+        "max_lift_mm": 32.8,
+        "hole_patch_m2": 0.142
+      },
+      "rear": {
+        "area_m2": 0.011,
+        "max_lift_mm": 81.1,
+        "hole_patch_m2": 0.196
+      }
+    },
+    "windshield": {
+      "x_range": [
+        1.08,
+        2.085
+      ],
+      "residual_std_mm": 2.21,
+      "shift_mm": [
+        -7.1,
+        5.6
+      ]
+    },
+    "pillar_pits": {
+      "area_m2": 0.078,
+      "max_lift_mm": 57.8
+    },
+    "panels": {
+      "top": {
+        "area_m2": 4.46,
+        "mean_shift_mm": 0.99
+      },
+      "front": {
+        "area_m2": 0.28,
+        "mean_shift_mm": 1.08
+      },
+      "rear": {
+        "area_m2": 0.48,
+        "mean_shift_mm": 1.0
+      },
+      "bottom": {
+        "area_m2": 5.9,
+        "mean_shift_mm": 0.33
+      },
+      "side": {
+        "area_m2": 2.11,
+        "mean_shift_mm": 0.92
+      }
+    }
+  },
+  "decimation_attempts": 1,
+  "final_fit": {
+    "width_scale": 1.0014884230057228,
+    "height_scale": 1.0197010291561674,
+    "length_scale": 1.0150762277494365
+  },
+  "extents_mm": [
+    4635,
+    1946,
+    1623
+  ],
+  "body_width_mm": 1890,
+  "faces": 999994,
+  "watertight": true,
+  "winding_consistent": true,
+  "euler": 2,
+  "volume_m3": 8.759,
+  "mirror_deviation_max_mm": 0.0,
+  "edge_mm_mean": 8.89,
+  "seconds": 167.6
+}

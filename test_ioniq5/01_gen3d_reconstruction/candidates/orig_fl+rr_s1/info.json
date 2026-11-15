@@ -1,0 +1,21 @@
+{
+  "components": 2,
+  "sliver_faces_removed": 0,
+  "faces": 300000,
+  "extents_mm": [
+    4635,
+    1951,
+    1631
+  ],
+  "wheels": {
+    "FL": 1871,
+    "FR": 1886,
+    "RL": 1684,
+    "RR": 1614
+  },
+  "wheel_ratio": 0.856,
+  "mirror_error_mm": 15.39,
+  "score": 0.548,
+  "tag": "orig_fl+rr_s1",
+  "imported_from": "/home/riche3488/aero_project/gen3d/output/ioniq5_final_raw.ply"
+}

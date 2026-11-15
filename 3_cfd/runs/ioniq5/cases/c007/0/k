@@ -1,0 +1,18 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      k;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+kInlet          0.029;              // I = 0.5 %
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform $kInlet;
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+    inlet       { type fixedValue; value uniform $kInlet; }
+    "(outlet|freestream)" { type inletOutlet; inletValue uniform $kInlet; value uniform $kInlet; }
+    "(ground|body|mirror|wheel.*)" { type kqRWallFunction; value uniform $kInlet; }
+}

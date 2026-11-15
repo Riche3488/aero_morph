@@ -1,0 +1,17 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      functions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeFunc forceCoeffsIncompressible
+#includeFunc yPlus
+#includeFunc time
+#includeFunc residuals(p, U, k, omega)
+#includeFunc cutPlaneSurface(name=yNormal, point=(0 0.001 0), normal=(0 1 0), fields=(p U))
+#includeFunc cutPlaneSurface(name=zNormal, point=(0 0 0.5), normal=(0 0 1), fields=(p U))
+#includeFunc cutPlaneSurface(name=xWake, point=(5.2 0 0), normal=(1 0 0), fields=(p U))
+#includeFunc patchSurface(name=car, patch="(body|mirror|wheel.*)", fields=(p wallShearStress))
+#includeFunc wallShearStress
